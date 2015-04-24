@@ -141,8 +141,6 @@ bool AutoFlight::attemptConnectionToDrone()
 		break;
 	}
 
-	_drone->startUpdateLoop();
-
 		//TODO: Drone configuration
 		/*
 		ARDroneConfiguration *config = ARDroneConfigurationFileIO::loadARDroneConfiguration(0);
@@ -155,6 +153,10 @@ bool AutoFlight::attemptConnectionToDrone()
 
 	if(connected == drone::connectionstatus::CONNECTION_ESTABLISHED || connected == drone::connectionstatus::ALREADY_CONNECTED)
 	{
+		if(connected == drone::connectionstatus::CONNECTION_ESTABLISHED)
+		{
+			_drone->startUpdateLoop();
+		}
 		return true;
 	}
 	else

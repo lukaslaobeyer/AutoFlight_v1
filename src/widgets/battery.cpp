@@ -11,17 +11,17 @@ Battery::Battery(QWidget *parent): QWidget(parent)
 	QHBoxLayout *layout = new QHBoxLayout();
 	layout->setSpacing(0);
 	layout->setMargin(0);
-	
+
 	setStyleSheet("padding: 0;");
-	
+
 		QVBoxLayout *contentLayout = new QVBoxLayout();
 		contentLayout->setSpacing(2);
 		contentLayout->setMargin(0);
 		contentLayout->setContentsMargins(4, 4, 4, 4);
-		
+
 		QWidget *content = new QWidget();
 		content->setLayout(contentLayout);
-		
+
 			batteryLevel = new QProgressBar();
 			batteryLevel->setTextVisible(false);
 			batteryLevel->setRange(0, 100);
@@ -30,29 +30,29 @@ Battery::Battery(QWidget *parent): QWidget(parent)
 			batteryLevel->setMinimumWidth(50);
 			batteryLevel->setStyleSheet("QProgressBar {border: 1px solid gray; border-radius: 3px; background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #C9C9C9, stop: 1 #DBDBDB);} QProgressBar::chunk {background: red;}");
 			contentLayout->addWidget(batteryLevel);
-			
+
 			batteryLevelLabel = new QLabel("N/A");
 			batteryLevelLabel->setStyleSheet("font: 13pt; font-weight: bold;");
 			batteryLevelLabel->setAlignment(Qt::AlignCenter);
 			contentLayout->addWidget(batteryLevelLabel);
-		
+
 		TitledBox *box = new TitledBox(tr("Bat."), content);
 		layout->addWidget(box);
-		
+
 	QGraphicsDropShadowEffect *dropShadow = new QGraphicsDropShadowEffect();
 	dropShadow->setBlurRadius(6);
 	dropShadow->setColor(QColor(0, 0, 0));
 	dropShadow->setOffset(0, 0);
-	
+
 	setGraphicsEffect(dropShadow);
-	
+
 	setLayout(layout);
 }
 
 void Battery::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 {
 	batteryLevelLabel->setText(QString::number(nd->batterystatus * 100.0f, 'f', 0) + "%");
-	
+
 	batteryLevel->setValue(nd->batterystatus * 100.0f);
 	int hue1 = (int)(nd->batterystatus * 100.0f * 1.2f), saturation1 = 255, brightness1 = 190;
 	int hue2 = hue1, saturation2 = 255, brightness2 = 150;

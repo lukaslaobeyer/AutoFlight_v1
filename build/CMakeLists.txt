@@ -129,8 +129,8 @@ target_link_libraries(AutoFlight ${PYTHON_LIBRARIES})
 target_link_libraries(AutoFlight GL x264)
 
 # Link libraries in ../lib
-target_link_libraries(AutoFlight "/home/lukas/workspace/AutoFlight/lib/release-linux64/libstem_gamepad.a")
-target_link_libraries(AutoFlight "/home/lukas/workspace/AutoFlight/lib/release-linux64/libqscintilla2.a")
+target_link_libraries(AutoFlight "/home/lukas/workspace/AutoFlight_v1/lib/release-linux64/libstem_gamepad.a")
+target_link_libraries(AutoFlight "/home/lukas/workspace/AutoFlight_v1/lib/release-linux64/libqscintilla2.a")
 
 # Use the Widgets module from Qt 5
 qt5_use_modules(AutoFlight Widgets PrintSupport WebKit WebKitWidgets OpenGL)

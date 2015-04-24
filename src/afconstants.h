@@ -6,7 +6,7 @@
 namespace autoflight
 {
 	const std::string SOFTWARE_VERSION = "Alpha 0.2.0";
-	const std::string BUILD_NUMBER     = "42eb3d1";
+	const std::string BUILD_NUMBER     = "7a5a861";
 }
 
 /*

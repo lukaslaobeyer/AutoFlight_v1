@@ -56,14 +56,14 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 
 	QWidget *main = new QWidget();
 	setCentralWidget(main);
-	
+
 	grid = new QGridLayout();
 	main->setLayout(grid);
-	
+
 	setWindowAttributes();
-	
+
 	createMenuBar();
-	
+
 	// Shows important notifications
 	msg = new QLabel(this);
 	msg->setAlignment(Qt::AlignCenter);
@@ -183,23 +183,23 @@ void AFMainWindow::videoFrameAvailable(QImage f)
 void AFMainWindow::createMenuBar() {
 	QMenu *drone = new QMenu(tr("&Drone"));
 	menuBar()->addMenu(drone);
-		
+
 		QAction *connectDrone = new QAction(tr("&Connect to drone"), this);
 		drone->addAction(connectDrone);
-		
+
 		/* TODO: This
 		QAction *connectArduino = new QAction(tr("Connect to Arduino"), this);
 		drone->addAction(connectArduino);
 		*/
-		
+
 		drone->addSeparator();
-		
+
 		QAction *flatTrim = new QAction(tr("&Flat Trim"), this);
 		drone->addAction(flatTrim);
-		
+
 		QAction *calibMagneto = new QAction(tr("Calibrate &Magnetometer"), this);
 		drone->addAction(calibMagneto);
-		
+
 		drone->addSeparator();
 
 		QAction *flightSettings = new QAction(tr("Flight &Settings"), this);
@@ -209,13 +209,13 @@ void AFMainWindow::createMenuBar() {
 		/* TODO: This
 		QAction *pairDrone = new QAction(tr("Pair (Mac-Address coupling)"), this);
 		drone->addAction(pairDrone);
-		
+
 		QAction *unpairDrone = new QAction(tr("Unpair"), this);
 		drone->addAction(unpairDrone);
 		*/
 	QMenu *tools = new QMenu(tr("&Tools"));
 	menuBar()->addMenu(tools);
-	
+
 		QAction *controlConfig = new QAction(tr("&Controller Configuration"), this);
 		tools->addAction(controlConfig);
 
@@ -225,14 +225,14 @@ void AFMainWindow::createMenuBar() {
 		/* TODO: This
 		QAction *controlInfo = new QAction(tr("Controller Information"), this);
 		tools->addAction(controlInfo);
-		
+
 		tools->addSeparator();
-		
+
 		QAction *configEditor = new QAction(tr("Configuration Editor"), this);
 		tools->addAction(configEditor);
-		
+
 		tools->addSeparator();
-		
+
 		QAction *gpsViewer = new QAction(tr("GPS Viewer"), this);
 		tools->addAction(gpsViewer);
 		*/
@@ -242,10 +242,10 @@ void AFMainWindow::createMenuBar() {
 		toggleHUD->setCheckable(true);
 		toggleHUD->setShortcut(QKeySequence::fromString("F5"));
 		view->addAction(toggleHUD);
-		
+
 		/* TODO: This
 		view->addSeparator();
-		
+
 		QAction *toggleFullscreen = new QAction(tr("Fullscreen"), this);
 		toggleFullscreen->setCheckable(true);
 		view->addAction(toggleFullscreen);
@@ -255,7 +255,7 @@ void AFMainWindow::createMenuBar() {
 		/* TODO: This
 		QAction *onlineHelp = new QAction(tr("Online Help"), this);
 		help->addAction(onlineHelp);
-		
+
 		help->addSeparator();
 		*/
 		QAction *about = new QAction(tr("About Auto&Flight"), this);
@@ -278,17 +278,17 @@ QWidget *AFMainWindow::createVerticalToolbar()
 {
 	QVBoxLayout *layout = new QVBoxLayout();
 	layout->setSpacing(5);
-	
+
 	QWidget *panel = new QWidget();
 	panel->setLayout(layout);
 	panel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-	
+
 	Connection *c = new Connection();
 	QObject::connect(c, SIGNAL(droneConnectionRequested()), this, SLOT(attemptConnection()));
 	layout->addWidget(c);
-	
+
 	layout->addStretch();
-	
+
 	QPushButton *launchMap = new QPushButton("Map View");
 	//launchMap->setIconSize(QSize(200, 50));
 	QObject::connect(launchMap, SIGNAL(clicked()), this, SLOT(launch3DMapView()));
@@ -310,38 +310,38 @@ QWidget *AFMainWindow::createVerticalToolbar()
 }
 
 QWidget *AFMainWindow::createHorizontalToolbar()
-{	
+{
 	QHBoxLayout *layout = new QHBoxLayout();
 	layout->setSpacing(5);
-	
+
 	QWidget *panel = new QWidget();
 	panel->setLayout(layout);
 	panel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	
+
 	layout->addStretch();
-	
+
 	Orientation *o = new Orientation();
 	layout->addWidget(o);
 	QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), o, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
-	
+
 	Altitude *a = new Altitude();
 	layout->addWidget(a);
 	QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), a, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
-	
+
 	Speed *s = new Speed();
 	layout->addWidget(s);
 	QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), s, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
-	
+
 	Battery *b = new Battery();
 	layout->addWidget(b);
 	QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), b, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
-	
+
 	SignalStrength *ss = new SignalStrength();
 	layout->addWidget(ss);
 	QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), ss, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
-	
+
 	layout->addStretch();
-	
+
 	return panel;
 }
 
@@ -638,7 +638,7 @@ bool AFMainWindow::eventFilter(QObject *watched, QEvent* e)
 					break;
 				case Qt::Key_J:
 					// Rotate counterclockwise
-					drone_setYawRel(_af->drone(), 0.6f);
+					drone_setYawRel(_af->drone(), -0.6f);
 					break;
 				case Qt::Key_K:
 					// Descend

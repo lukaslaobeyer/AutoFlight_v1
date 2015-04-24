@@ -15,12 +15,12 @@ void VideoDisplay::setCurrentFrame(const QImage &img)
 
 void VideoDisplay::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 {
-	yaw = nd->attitude(2);
-	pitch = nd->attitude(0);
-	roll = nd->attitude(1);
+	yaw = nd->attitude(2) * (180.0f/M_PI);
+	pitch = nd->attitude(0) * (180.0f/M_PI);
+	roll = nd->attitude(1) * (180.0f/M_PI);
 
-	altitude = nd->altitude;
-	charge = nd->batterystatus * 100;
+	altitude = nd->altitude * 100.0f;
+	charge = nd->batterystatus * 100.0f;
 	speed = sqrt(nd->linearvelocity(0) * nd->linearvelocity(0) + nd->linearvelocity(1) * nd->linearvelocity(1));
 }
 

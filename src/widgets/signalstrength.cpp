@@ -9,17 +9,17 @@ SignalStrength::SignalStrength(QWidget *parent): QWidget(parent)
 	QHBoxLayout *layout = new QHBoxLayout();
 	layout->setSpacing(0);
 	layout->setMargin(0);
-	
+
 	setStyleSheet("padding: 0;");
-	
+
 		QVBoxLayout *contentLayout = new QVBoxLayout();
 		contentLayout->setSpacing(2);
 		contentLayout->setMargin(0);
 		contentLayout->setContentsMargins(4, 4, 4, 4);
-		
+
 		QWidget *content = new QWidget();
 		content->setLayout(contentLayout);
-		
+
 			signalStrength = new QProgressBar();
 			signalStrength->setTextVisible(false);
 			signalStrength->setRange(0, 100);
@@ -28,31 +28,34 @@ SignalStrength::SignalStrength(QWidget *parent): QWidget(parent)
 			signalStrength->setMinimumWidth(50);
 			signalStrength->setStyleSheet("QProgressBar {border: 1px solid gray; border-radius: 3px; background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #C9C9C9, stop: 1 #DBDBDB);} QProgressBar::chunk {background: red;}");
 			contentLayout->addWidget(signalStrength);
-			
+
 			signalStrengthLabel = new QLabel("N/A");
 			signalStrengthLabel->setStyleSheet("font: 13pt; font-weight: bold;");
 			signalStrengthLabel->setAlignment(Qt::AlignCenter);
 			contentLayout->addWidget(signalStrengthLabel);
-		
+
 		TitledBox *box = new TitledBox(tr("WiFi"), content);
 		layout->addWidget(box);
-		
+
 	QGraphicsDropShadowEffect *dropShadow = new QGraphicsDropShadowEffect();
 	dropShadow->setBlurRadius(6);
 	dropShadow->setColor(QColor(0, 0, 0));
 	dropShadow->setOffset(0, 0);
-	
+
 	setGraphicsEffect(dropShadow);
-	
+
 	setLayout(layout);
 }
 
 void SignalStrength::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 {
-	signalStrengthLabel->setText(QString::number(nd->linkquality * 100.0f, 'f', 0) + "%");
-	
-	signalStrength->setValue(nd->linkquality * 100.0f);
-	int hue1 = (int)(nd->linkquality * 100.0f * 1.2f), saturation1 = 255, brightness1 = 190;
-	int hue2 = hue1, saturation2 = 255, brightness2 = 150;
-	signalStrength->setStyleSheet("QProgressBar {border: 1px solid gray; border-radius: 3px; background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #CCCCCC, stop: 1 #DBDBDB);} QProgressBar::chunk {background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 hsv(" + QString::number(hue1) + ", " + QString::number(saturation1) + ", " + QString::number(brightness1) + "), stop: 1 hsv(" + QString::number(hue2) + ", " + QString::number(saturation2) + ", " + QString::number(brightness2) + "));}");
+	if(nd->linkquality > 0.0f)
+	{
+		signalStrengthLabel->setText(QString::number(nd->linkquality * 100.0f, 'f', 0) + "%");
+
+		signalStrength->setValue(nd->linkquality * 100.0f);
+		int hue1 = (int)(nd->linkquality * 100.0f * 1.2f), saturation1 = 255, brightness1 = 190;
+		int hue2 = hue1, saturation2 = 255, brightness2 = 150;
+		signalStrength->setStyleSheet("QProgressBar {border: 1px solid gray; border-radius: 3px; background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #CCCCCC, stop: 1 #DBDBDB);} QProgressBar::chunk {background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 hsv(" + QString::number(hue1) + ", " + QString::number(saturation1) + ", " + QString::number(brightness1) + "), stop: 1 hsv(" + QString::number(hue2) + ", " + QString::number(saturation2) + ", " + QString::number(brightness2) + "));}");
+	}
 }

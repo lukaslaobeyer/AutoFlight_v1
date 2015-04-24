@@ -130,7 +130,7 @@ bool drone_switchview(std::shared_ptr<Bebop> drone)
 
 	if(tilt == 0.0f)
 	{
-		tilt = 100.0f;
+		tilt = -100.0f;
 	}
 	else
 	{
