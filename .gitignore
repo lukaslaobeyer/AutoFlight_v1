@@ -1,0 +1,10 @@
+*~
+
+.project
+.cproject
+.settings/
+
+build/build/
+release_linux/
+release_windows/
+windows_imageprocessing_addon/
