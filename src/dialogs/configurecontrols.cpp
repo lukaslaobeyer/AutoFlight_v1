@@ -40,6 +40,7 @@ ConfigureControls::ConfigureControls(unsigned int deviceID, ControllerConfigurat
 		cc->recording = -1;
 		cc->roll = -1;
 		cc->slow = -1;
+		cc->camorientation = -1;
 		cc->takeoff = -1;
 		cc->yaw = -1;
 		cc->zap = -1;
@@ -76,7 +77,8 @@ ConfigureControls::ConfigureControls(unsigned int deviceID, ControllerConfigurat
 			tr("Take Picture"),
 			tr("Flip"),
 			tr("Toggle Camera (Front/Bottom)"),
-			tr("Slow Mode")
+			tr("Slow Mode"),
+			tr("Camera orientation (Bebop only)")
 	};
 
 	for(unsigned int i = 0; i < labels.size(); i++)
@@ -411,6 +413,12 @@ void ConfigureControls::setButton()
 		senderID = 11;
 		cc->slow = selectedButtonID;
 	}
+	else if(QObject::sender() == buttons[12])
+	{
+		// Camera orientation modifier
+		senderID = 12;
+		cc->camorientation = selectedButtonID;
+	}
 	else if(QObject::sender() == axisButtons[0])
 	{
 		// Height +
@@ -462,7 +470,7 @@ void ConfigureControls::setButton()
 
 	if(senderID >= 0)
 	{
-		if(senderID <= 11)
+		if(senderID <= 12)
 		{
 			if(selectedButtonID >= 0)
 			{
@@ -477,7 +485,7 @@ void ConfigureControls::setButton()
 		else
 		{
 			// axisButton
-			senderID -= 12;
+			senderID -= 13;
 
 			if(selectedButtonID >= 0)
 			{

@@ -4,6 +4,8 @@
 
 #include <boost/timer/timer.hpp>
 
+#include <cmath>
+
 ManualControl::ManualControl(AutoFlight *af, AFMainWindow *aw) : _af(af), _aw(aw) {}
 
 void ManualControl::startUpdateLoop()
@@ -317,7 +319,7 @@ ControllerConfiguration *ManualControl::getControllerConfiguration()
 void ManualControl::processControllerInput()
 {
 	static const int N_CYCLES = 16;
-	static const int N_COUNTERS = 8;
+	static const int N_COUNTERS = 9;
 	static int cyclesToWait[] = { // Update loop cycles to wait for each action before accepting new commands:
 			0, // 0 Takeoff          Needed to ensure that actions do not trigger multiple times on somewhat longer button presses.
 			0, // 1 Land             When an action is triggered, the corresponding cycle counter is set to N_CYCLES and decremented
@@ -327,6 +329,7 @@ void ManualControl::processControllerInput()
 			0, // 5 Flip
 			0, // 6 Slow mode
 			0, // 7 Emergency
+			0  // 8 Camera orientation
 	};
 
 	if(_controllerconfig != nullptr)
@@ -336,6 +339,7 @@ void ManualControl::processControllerInput()
 		Gamepad_device *device = Gamepad_deviceAtIndex(_controllerconfig->deviceID);
 		Gamepad_processEvents();
 		bool slow = false;
+		bool changeCamOrientation = false;
 
 		// Decrement cyclesToWait counters if needed
 		for(int i = 0; i < N_COUNTERS; i++)
@@ -348,9 +352,10 @@ void ManualControl::processControllerInput()
 
 		if(device == nullptr)
 		{
-			drone_hover(_af->drone());
 			return;
 		}
+
+		//device->buttonStates[DPAD]
 
 		if(_controllerconfig->takeoff >= 0 && cyclesToWait[0] == 0)
 		{
@@ -442,6 +447,17 @@ void ManualControl::processControllerInput()
 				cyclesToWait[6] = N_CYCLES;
 			}
 		}
+		if(_controllerconfig->camorientation >= 0)
+		{
+			if(device->buttonStates[_controllerconfig->camorientation])
+			{
+				changeCamOrientation = true;
+			}
+			else
+			{
+				changeCamOrientation = false;
+			}
+		}
 		if(_controllerconfig->emergency >= 0 && cyclesToWait[7] == 0)
 		{
 			if(device->buttonStates[_controllerconfig->emergency])
@@ -503,21 +519,37 @@ void ManualControl::processControllerInput()
 		}
 
 		// Ignore very small values
-		if(abs(phi) < 0.05f)
+		if(fabs(phi) < 0.1f)
 		{
 			phi = 0;
 		}
-		if(abs(theta) < 0.05f)
+		if(fabs(theta) < 0.1f)
 		{
 			theta = 0;
 		}
-		if(abs(gaz) < 0.05f)
+		if(fabs(gaz) < 0.1f)
 		{
 			gaz = 0;
 		}
-		if(abs(yaw) < 0.05f)
+		if(fabs(yaw) < 0.1f)
 		{
 			yaw = 0;
+		}
+
+		if(changeCamOrientation)
+		{
+			if(cyclesToWait[8] == 0)
+			{
+				if(_af->bebop())
+				{
+					// Drone can't deal with too many camera orientation commands (why, Parrot? :( )
+					cyclesToWait[8] = 8;
+
+					drone_setCameraOrientation(_af->bebop(), gaz * 100.0f, yaw * 100.0f);
+					gaz = 0;
+					yaw = 0;
+				}
+			}
 		}
 
 		if(!(phi == 0 && theta == 0 && gaz == 0 && yaw == 0))

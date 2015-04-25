@@ -37,6 +37,7 @@ bool ControllerConfigurationFileIO::saveControllerConfiguration(ControllerConfig
 	addControllerConfigNode(root, "flip", cc->flip);
 	addControllerConfigNode(root, "zap", cc->zap);
 	addControllerConfigNode(root, "slow", cc->slow);
+	addControllerConfigNode(root, "camorientation", cc->camorientation);
 
 	string device = boost::lexical_cast<std::string>(cc->vendorID) + "." + boost::lexical_cast<std::string>(cc->productID);
 	string path = AutoFlight::getProgramDirectory() + "controllerconfig_" + device + ".xml";
@@ -184,6 +185,10 @@ ControllerConfiguration *ControllerConfigurationFileIO::loadControllerConfigurat
 		else if(key == "slow")
 		{
 			cc->slow = value;
+		}
+		else if(key == "camorientation")
+		{
+			cc->camorientation = value;
 		}
 	}
 

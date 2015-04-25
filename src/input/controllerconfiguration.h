@@ -30,6 +30,7 @@ struct ControllerConfiguration
 	int flip;
 	int zap;
 	int slow;
+	int camorientation;  // When pressed uses the height/yaw axes to change the camera orientation (Bebop only)
 };
 
 inline int *ControllerConfiguration_getControlsArray(ControllerConfiguration *c)
