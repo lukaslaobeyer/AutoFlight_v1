@@ -352,10 +352,9 @@ void ManualControl::processControllerInput()
 
 		if(device == nullptr)
 		{
+			drone_hover(_af->drone());
 			return;
 		}
-
-		//device->buttonStates[DPAD]
 
 		if(_controllerconfig->takeoff >= 0 && cyclesToWait[0] == 0)
 		{
@@ -555,6 +554,10 @@ void ManualControl::processControllerInput()
 		if(!(phi == 0 && theta == 0 && gaz == 0 && yaw == 0))
 		{
 			drone_setAttitudeRel(_af->drone(), theta, phi, yaw, gaz);
+		}
+		else
+		{
+			drone_hover(_af->drone());
 		}
 
 		//in->altitude = gaz;
