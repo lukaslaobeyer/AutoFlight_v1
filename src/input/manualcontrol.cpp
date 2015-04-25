@@ -503,24 +503,27 @@ void ManualControl::processControllerInput()
 		}
 
 		// Ignore very small values
-		if(abs(phi) < 0.1f)
+		if(abs(phi) < 0.05f)
 		{
 			phi = 0;
 		}
-		if(abs(theta) < 0.1f)
+		if(abs(theta) < 0.05f)
 		{
 			theta = 0;
 		}
-		if(abs(gaz) < 0.1f)
+		if(abs(gaz) < 0.05f)
 		{
 			gaz = 0;
 		}
-		if(abs(yaw) < 0.1f)
+		if(abs(yaw) < 0.05f)
 		{
 			yaw = 0;
 		}
 
-		drone_setAttitudeRel(_af->drone(), phi, theta, gaz, yaw);
+		if(!(phi == 0 && theta == 0 && gaz == 0 && yaw == 0))
+		{
+			drone_setAttitudeRel(_af->drone(), theta, phi, yaw, gaz);
+		}
 
 		//in->altitude = gaz;
 		//in->yaw = yaw;

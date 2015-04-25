@@ -6,7 +6,7 @@
 namespace autoflight
 {
 	const std::string SOFTWARE_VERSION = "Beta 1.0";
-	const std::string BUILD_NUMBER     = "9293d87";
+	const std::string BUILD_NUMBER     = "8e30ab1";
 }
 
 namespace error
