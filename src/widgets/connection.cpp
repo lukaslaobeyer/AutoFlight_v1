@@ -20,7 +20,7 @@ Connection::Connection(QWidget *parent) : QWidget(parent)
 		QWidget *content = new QWidget();
 		content->setLayout(contentLayout);
 		
-			connectDrone = new QPushButton(tr("Connect to AR.Drone"));
+			connectDrone = new QPushButton(tr("Connect to Drone"));
 			connectDrone->setStyleSheet("padding: 4px;");
 			contentLayout->addWidget(connectDrone);
 			

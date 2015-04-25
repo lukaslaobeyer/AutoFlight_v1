@@ -31,6 +31,7 @@ class AutoFlight
 
 		bool attemptConnectionToDrone();
 
+		std::string droneName();
 		std::shared_ptr<Drone> drone();
 		std::shared_ptr<FPVDrone> fpvdrone();
 		std::shared_ptr<ARDrone2> ardrone2();

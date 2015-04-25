@@ -41,7 +41,7 @@ find_package(Qt5OpenGL)
 
 # Find the Boost libraries
 set(Python_ADDITIONAL_VERSIONS 3)
-find_package(Boost 1.53 COMPONENTS program_options python-py34 system filesystem thread chrono date_time REQUIRED)
+find_package(Boost 1.53 COMPONENTS program_options python-py34 system filesystem thread chrono date_time timer REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
 # Find OpenCV
@@ -77,6 +77,8 @@ file(GLOB AutoFlight_SRC
     "../src/widgets/*.cpp"
     "../src/dialogs/*.h"
     "../src/dialogs/*.cpp"
+    "../src/input/*.h"
+    "../src/input/*.cpp"
     #"../src/ardrone/*.h"
     #"../src/ardrone/*.cpp"
     #"../src/ardrone/atcommands/*.h"

@@ -2,7 +2,7 @@
 
 #include "afconstants.h"
 
-#include "dronehelper.h"
+#include <dronehelper.h>
 
 #include "widgets/orientation.h"
 #include "widgets/altitude.h"
@@ -12,11 +12,11 @@
 #include "widgets/connection.h"
 
 #include "dialogs/selectcontroller.h"
-//#include "dialogs/configurecontrols.h"
+#include "dialogs/configurecontrols.h"
 #include "dialogs/welcomedialog.h"
 //#include "dialogs/dronesettings.h"
 
-//#include "tools/controllerconfigurationfileio.h"
+#include "tools/controllerconfigurationfileio.h"
 //#include "tools/ardroneconfigurationfileio.h"
 
 #include <QtWidgets>
@@ -38,7 +38,10 @@ using namespace std;
 
 void AFMainWindow::setWindowAttributes()
 {
-	setWindowTitle("AutoFlight");
+	string title;
+	title = "AutoFlight - " + _af->droneName();
+
+	setWindowTitle(QString::fromStdString(title));
 	setWindowIcon(QIcon(":/resources/icon.png"));
 	setMinimumSize(PREF_WIDTH, PREF_HEIGHT); //TODO: Netbook support
 }
@@ -93,6 +96,8 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	_af->drone()->addConnectionStatusListener(this);
 	//_af->ardrone()->addVideoListener(_imgProcTest);
 
+	_manualcontrol.reset(new ManualControl(_af, this));
+	_manualcontrol->startUpdateLoop();
 
 	QObject::connect(this, SIGNAL(videoFrameAvailableSignal(QImage)), this, SLOT(videoFrameAvailable(QImage)));
 	QObject::connect(this, SIGNAL(connectionLostSignal()), this, SLOT(handleConnectionLost()));
@@ -102,14 +107,12 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 
 	installEventFilter(this);
 
-	//TODO: Controller input
-	/*
+	//TODO: Fix memory leaks
 	ControllerConfiguration *cc = ControllerConfigurationFileIO::loadControllerConfiguration();
 	if(cc != nullptr)
 	{
-		_af->ardrone()->setControllerConfiguration(cc);
+		_manualcontrol->setControllerConfiguration(cc);
 	}
-	*/
 
 	showFirstRunInfoIfRequired();
 }
@@ -186,11 +189,6 @@ void AFMainWindow::createMenuBar() {
 
 		QAction *connectDrone = new QAction(tr("&Connect to drone"), this);
 		drone->addAction(connectDrone);
-
-		/* TODO: This
-		QAction *connectArduino = new QAction(tr("Connect to Arduino"), this);
-		drone->addAction(connectArduino);
-		*/
 
 		drone->addSeparator();
 
@@ -482,232 +480,30 @@ void AFMainWindow::showControlConfigDialog()
 
 	if(!cancel)
 	{
-		//TODO: Controller input
-		/*ConfigureControls cc(controllerID, _af->ardrone()->getControllerConfiguration(), this);
+		ConfigureControls cc(controllerID, _manualcontrol->getControllerConfiguration(), this);
 		cc.exec();
 
 		if(cc.result() == QDialog::Accepted)
 		{
-
-			_af->ardrone()->setControllerConfiguration(cc.getControllerConfiguration());
+			_manualcontrol->setControllerConfiguration(cc.getControllerConfiguration());
 			ControllerConfigurationFileIO::saveControllerConfiguration(cc.getControllerConfiguration());
-		}*/
+		}
 	}
-}
-
-void AFMainWindow::clearConfirmationFlags()
-{
-	_confirmEmergency = false;
-	_confirmFlip = false;
 }
 
 bool AFMainWindow::eventFilter(QObject *watched, QEvent* e)
 {
-	//TODO: Good controller input
 	if(e->type() == QEvent::KeyPress)
 	{
 		QKeyEvent *ke = static_cast<QKeyEvent*>(e);
 
-		if(!ke->isAutoRepeat())
-		{
-			if(_af->drone()->isConnected())
-			{
-				switch(ke->key())
-				{
-				case Qt::Key_T:
-					// Take off or land
-					if(_af->drone()->isFlying())
-					{
-						showMessage(tr("Landing").toStdString());
-						drone_land(_af->drone());
-					}
-					else
-					{
-						showMessage(tr("Taking off").toStdString());
-						drone_takeOff(_af->drone());
-					}
-
-					break;
-				case Qt::Key_F:
-					if(!_confirmFlip)
-					{
-						showMessage(tr("[Flip] Are you sure?").toStdString());
-						QTimer::singleShot(CONFIRMATION_TIMEOUT, this, SLOT(clearConfirmationFlags()));
-						_confirmFlip = true;
-					}
-					else
-					{
-						hideMessages();
-						showMessage(tr("Performing flip!").toStdString());
-						if(_af->ardrone2())
-						{
-							drone_flip(_af->ardrone2());
-						}
-						else if(_af->bebop())
-						{
-							drone_flip(_af->bebop());
-						}
-						else
-						{
-							showMessage(tr("Flip for this drone not supported").toStdString());
-						}
-					}
-					// Flip
-					break;
-				case Qt::Key_P:
-					//TODO: Take Picture
-					// _af->ardrone()->drone_takePicture();
-					showMessage(tr("Picture saved").toStdString());
-					break;
-				case Qt::Key_R:
-					//TODO: Start/stop Recording
-					/*if(_af->ardrone()->drone_isRecording())
-					{
-						showMessage(tr("Stopped recording").toStdString());
-					}
-					else
-					{
-						showMessage(tr("Recording").toStdString());
-					}
-					_af->ardrone()->drone_toggleRecording();*/
-					break;
-				case Qt::Key_N:
-					//TODO: Start/stop Recording Sensor Data
-					/*if(_af->ardrone()->drone_isRecordingNavdata())
-					{
-						showMessage(tr("Stopped recording sensor data").toStdString());
-					}
-					else
-					{
-						showMessage(tr("Recording sensor data").toStdString());
-					}
-					_af->ardrone()->drone_toggleRecordingNavdata();*/
-					break;
-				case Qt::Key_V:
-					// Change View
-					showMessage(tr("Switching view").toStdString());
-					if(_af->ardrone2())
-					{
-						drone_switchview(_af->ardrone2());
-					}
-					else if(_af->bebop())
-					{
-						drone_switchview(_af->bebop());
-					}
-					else
-					{
-						showMessage(tr("Switching view not supported by this drone").toStdString());
-					}
-					break;
-				case Qt::Key_Y:
-					if(!_confirmEmergency)
-					{
-						showMessage(tr("[Emergency] Are you sure?").toStdString());
-						QTimer::singleShot(CONFIRMATION_TIMEOUT, this, SLOT(clearConfirmationFlags()));
-						_confirmEmergency = true;
-					}
-					else
-					{
-						hideMessages();
-						showMessage(tr("Emergency command sent").toStdString());
-						drone_emergency(_af->drone());
-					}
-					// Emergency
-					break;
-
-				case Qt::Key_W:
-					// Pitch forward
-					drone_setPitchRel(_af->drone(), -0.6f);
-					break;
-				case Qt::Key_A:
-					// Roll left
-					drone_setRollRel(_af->drone(), -0.6f);
-					break;
-				case Qt::Key_S:
-					// Pitch backwards
-					drone_setPitchRel(_af->drone(), 0.6f);
-					break;
-				case Qt::Key_D:
-					// Roll right
-					drone_setRollRel(_af->drone(), 0.6f);
-					break;
-
-				case Qt::Key_I:
-					// Ascend
-					drone_setGazRel(_af->drone(), 0.6f);
-					break;
-				case Qt::Key_J:
-					// Rotate counterclockwise
-					drone_setYawRel(_af->drone(), -0.6f);
-					break;
-				case Qt::Key_K:
-					// Descend
-					drone_setGazRel(_af->drone(), -0.6f);
-					break;
-				case Qt::Key_L:
-					// Rotate clockwise
-					drone_setYawRel(_af->drone(), 0.6f);
-					break;
-
-				default:
-					break;
-				}
-			}
-			else
-			{
-				if(ke->key() >= Qt::Key_0 && ke->key() <= Qt::Key_Z)
-				{
-					showMessage("Not connected to AR.Drone");
-				}
-			}
-		}
+		_manualcontrol->processKeyPress(ke);
 	}
 	else if(e->type() == QEvent::KeyRelease)
 	{
 		QKeyEvent *ke = static_cast<QKeyEvent*>(e);
 
-		if(!ke->isAutoRepeat())
-		{
-			switch(ke->key())
-			{
-			case Qt::Key_W:
-				// Stop forward pitch
-				drone_setPitchRel(_af->drone(), 0);
-				break;
-			case Qt::Key_A:
-				// Stop left roll
-				drone_setRollRel(_af->drone(), 0);
-				break;
-			case Qt::Key_S:
-				// Stop backward pitch
-				drone_setPitchRel(_af->drone(), 0);
-				break;
-			case Qt::Key_D:
-				// Stop right roll
-				drone_setRollRel(_af->drone(), 0);
-				break;
-
-			case Qt::Key_I:
-				// Stop ascending
-				drone_setGazRel(_af->drone(), 0);
-				break;
-			case Qt::Key_J:
-				// Stop rotating counterclockwise
-				drone_setYawRel(_af->drone(), 0);
-				break;
-			case Qt::Key_K:
-				// Stop descending
-				drone_setGazRel(_af->drone(), 0);
-				break;
-			case Qt::Key_L:
-				// Stop rotating clockwise
-				drone_setYawRel(_af->drone(), 0);
-				break;
-
-			default:
-				break;
-			}
-		}
+		_manualcontrol->processKeyRelease(ke);
 	}
 
 	return false;
@@ -715,6 +511,8 @@ bool AFMainWindow::eventFilter(QObject *watched, QEvent* e)
 
 void AFMainWindow::closeEvent(QCloseEvent *event)
 {
+	_manualcontrol->stopUpdateLoop();
+
 	_af->sessionrecorder()->addEvent("ProgramExit");
 
 	_af->drone()->removeNavdataListener(this);
@@ -734,28 +532,33 @@ void AFMainWindow::closeEvent(QCloseEvent *event)
 
 void AFMainWindow::flatTrimActionTriggered()
 {
-	//TODO: flat trim
-	/*if(!_af->ardrone()->drone_flattrim())
+	if(!drone_flattrim(_af->drone()))
 	{
 		showMessage(tr("Not connected").toStdString());
 	}
 	else
 	{
 		showMessage(tr("Performing Flat Trim").toStdString());
-	}*/
+	}
 }
 
 void AFMainWindow::calibrateMagnetometerActionTriggered()
 {
-	//TODO: magneto calibration
-	/*if(!_af->ardrone()->drone_calibmagneto())
+	if(_af->ardrone2())
 	{
-		showMessage(tr("Not connected").toStdString());
+		if(!drone_calibmagneto(_af->ardrone2()))
+		{
+			showMessage(tr("Not connected").toStdString());
+		}
+		else
+		{
+			showMessage(tr("Calibrating Magnetometer").toStdString());
+		}
 	}
 	else
 	{
-		showMessage(tr("Calibrating Magnetometer").toStdString());
-	}*/
+		showMessage(tr("Automatic magnetometer calibration not supported").toStdString());
+	}
 }
 
 void AFMainWindow::showAboutDialog()

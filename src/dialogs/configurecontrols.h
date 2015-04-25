@@ -5,7 +5,7 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <vector>
-#include "../ardrone/input/controllerconfiguration.h"
+#include "../input/controllerconfiguration.h"
 
 class ConfigureControls : public QDialog
 {

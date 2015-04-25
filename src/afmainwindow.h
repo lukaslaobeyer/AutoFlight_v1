@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QGridLayout>
 #include <vector>
+#include <memory>
 #include <string>
 #include <opencv2/opencv.hpp>
 #include "autoflight.h"
@@ -17,18 +18,17 @@
 #include "widgets/map3d.h"
 #include "widgets/videodisplay.h"
 #include "asmainwindow.h"
+#include "input/manualcontrol.h"
 
 #include <drone.h>
 #include <interface/inavdatalistener.h>
 #include "qinterface/qnavdatalistener.h"
 #include <interface/ivideolistener.h>
 #include "qinterface/qvideolistener.h"
-/*
-#include "ardrone/input/controllerinput.h"
-#include "ardrone/input/icontrollerinputlistener.h"
-*/
 
 Q_DECLARE_METATYPE(std::shared_ptr<const drone::navdata>)
+
+class ManualControl;
 
 class AFMainWindow : public QMainWindow, public INavdataListener, public IConnectionStatusListener, public IVideoListener, /*public IControllerInputListener,*/ public QVideoListener
 {
@@ -70,9 +70,6 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 
 		QTimer *_messageTimer = NULL;
 
-		bool _confirmFlip = false;      // Needed to request a confirmation for performing a flip/sending an emergency command
-		bool _confirmEmergency = false;
-
 		AutoFlight *_af = NULL;
 
 		ASMainWindow *_asWindow = NULL;
@@ -80,13 +77,14 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 		Map3D *_map = NULL;
 		ImgProcMainWindow *_imgProc = NULL;
 
+		std::unique_ptr<ManualControl> _manualcontrol;
+
 		//ImageProcessor *_imgProcTest = NULL;
 	private Q_SLOTS:
 		void attemptConnection();
 		void showControlConfigDialog();
 		//void showDroneConfigDialog();
 		void videoFrameAvailable(QImage f);
-		void clearConfirmationFlags(); // Called after a timeout to clear the flags used by the confirmation mechanism for performing a flip/sending emergency commands
 		void toggleHUD(bool showHUD);
 		void launchAutoScriptIDE();
 		void launchSessionViewerDialog();

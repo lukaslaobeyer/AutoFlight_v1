@@ -3,7 +3,7 @@
 
 #include <pugixml/pugixml.hpp>
 #include <string>
-#include "../ardrone/ardroneconfiguration.h"
+#include "../input/ardroneconfiguration.h"
 
 namespace ARDroneConfigurationFileIO
 {

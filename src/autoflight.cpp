@@ -15,7 +15,7 @@ AutoFlight::AutoFlight(drone_type drone_type, string ip)
 
 	if(drone_type == ARDRONE2)
 	{
-		_drone = make_shared<ARDrone2>();
+		_drone = make_shared<ARDrone2>(getHomeDirectory() + "AutoFlightSaves/");
 		if(ip.length() > 0)
 		{
 			ardrone2()->setIP(ip);
@@ -43,6 +43,10 @@ AutoFlight::AutoFlight(drone_type drone_type, string ip)
 
 AutoFlight::~AutoFlight()
 {
+	if(_drone != nullptr)
+	{
+		_drone->stopUpdateLoop();
+	}
 	delete _ase;
 	delete _srec;
 }
@@ -69,6 +73,22 @@ string AutoFlight::getHomeDirectory()
 	}
 
 	return home;
+}
+
+string AutoFlight::droneName()
+{
+	if(_drone_type == ARDRONE2)
+	{
+		return "AR.Drone 2.0";
+	}
+	else if(_drone_type == BEBOP)
+	{
+		return "Bebop";
+	}
+	else
+	{
+		return "Unknown drone";
+	}
 }
 
 shared_ptr<Drone> AutoFlight::drone()
