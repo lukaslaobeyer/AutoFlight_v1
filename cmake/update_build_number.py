@@ -10,7 +10,7 @@ retcode = p.wait()
 build_number = text.decode(encoding='UTF-8')[:-1];
 
 
-filename = '../src/afconstants.h';
+filename = 'src/afconstants.h';
 
 if build_number in open(filename).read():
     print('[INFO] Build number already updated')

@@ -161,7 +161,7 @@ bool AutoFlight::attemptConnectionToDrone()
 		break;
 	}
 
-		//TODO: Drone configuration
+		// TODO: Drone configuration
 		/*
 		ARDroneConfiguration *config = ARDroneConfigurationFileIO::loadARDroneConfiguration(0);
 		if(config != nullptr)

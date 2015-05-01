@@ -1,8 +1,10 @@
 *~
+*.old
 
 .project
 .cproject
 .settings/
+.idea
 
 build/build/
 release_linux/
