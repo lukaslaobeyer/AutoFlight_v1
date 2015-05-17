@@ -6,7 +6,6 @@
 .settings/
 .idea
 
-build/build/
-release_linux/
-release_windows/
+build/
+release/
 windows_imageprocessing_addon/

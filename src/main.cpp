@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 #ifdef __MINGW32__
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 #endif
-	
+
 	// Parse command line options with boost::program_options
 	boost::program_options::options_description desc("Available options");
 	desc.add_options()
@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
 	    return 1;
 	}
 
-	drone_type drone_type;
-	std::string ip_address = "";
+	drone_type drone_type = BEBOP;
+	std::string ip_address = bebop::DEFAULT_IP;
 	std::string stream_res = "360P";
 
 	// Detect which drone to use

@@ -14,7 +14,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Run moc automatically when needed
 set(CMAKE_AUTOMOC ON)
 # Set executable output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY release_linux)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/release)
 # Add cmake/modules directory to CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/modules")
 
@@ -22,7 +22,11 @@ set(QT_USE_QTWEBKIT TRUE)
 
 # Tell cmake where Qt is
 #set(CMAKE_PREFIX_PATH "/home/lukas/workspace/libs/qt5/qtbase")
-set(CMAKE_PREFIX_PATH "/opt/Qt5.4.1/5.4/gcc_64")
+IF(MINGW)
+  set(CMAKE_PREFIX_PATH "C:/Qt/5.4/mingw491_32")
+ELSE()
+  set(CMAKE_PREFIX_PATH "/opt/Qt5.4.1/5.4/gcc_64")
+ENDIF()
 
 # Include libraries in the ../lib folder
 include_directories("${PROJECT_SOURCE_DIR}/lib/include/gamepad")
@@ -34,39 +38,68 @@ include_directories("${PROJECT_SOURCE_DIR}/../libdrone/include")
 # Find the QtWidgets library
 add_definitions(-DQT_NO_KEYWORDS)
 find_package(Qt5Widgets)
-find_package(Qt5WebKitWidgets)
 find_package(Qt5OpenGL)
 
 # Find the Boost libraries
+IF(MINGW)
+  set(BOOST_ROOT "C:/boost/build")
+ENDIF()
 set(Python_ADDITIONAL_VERSIONS 3)
-find_package(Boost 1.53 COMPONENTS program_options python-py34 system filesystem thread chrono date_time timer REQUIRED)
+IF(MINGW)
+  find_package(Boost 1.53 COMPONENTS program_options system python filesystem thread chrono date_time timer REQUIRED)
+ELSE()
+  find_package(Boost 1.53 COMPONENTS program_options system python-py34 filesystem thread chrono date_time timer REQUIRED)
+ENDIF()
 include_directories(${Boost_INCLUDE_DIR})
 
 # Find OpenCV
-set(OpenCV_DIR "/opt/opencv/share/OpenCV")
+IF(MINGW)
+  set(OpenCV_DIR "C:/opencv/share/OpenCV")
+ELSE()
+  set(OpenCV_DIR "/opt/opencv/share/OpenCV")
+ENDIF()
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Find Eigen
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
+IF(MINGW)
+  include_directories("C:/eigen3/include")
+ELSE()
+  find_package(Eigen3 REQUIRED)
+  include_directories(${EIGEN3_INCLUDE_DIR})
+ENDIF()
 
 # Find FFMPEG and dependencies
 #find_package(FFMPEG REQUIRED)
 #include_directories(${FFMPEG_INCLUDE_DIR})
 #find_package(ZLIB REQUIRED)
-set(FFMPEG_LIBRARIES
-    "/opt/ffmpeg/lib/libavcodec.so"
-    "/opt/ffmpeg/lib/libavformat.so"
-    "/opt/ffmpeg/lib/libavutil.so"
-	"/opt/ffmpeg/lib/libswscale.so"
-    "/opt/ffmpeg/lib/libswresample.so" )
-include_directories("/opt/ffmpeg/include")
+IF(MINGW)
+#  set(FFMPEG_LIBRARIES
+#      "C:/ffmpeg/bin/libavcodec.dll"
+#      "C:/ffmpeg/bin/lib/libavformat.dll"
+#      "C:/ffmpeg/bin/libavutil.dll"
+#      "C:/ffmpeg/bin/libswscale.dll"
+#      "C:/ffmpeg/bin/libswresample.dll" )
+  include_directories("C:/ffmpeg/include")
+ELSE()
+  set(FFMPEG_LIBRARIES
+      "/opt/ffmpeg/lib/libavcodec.so"
+      "/opt/ffmpeg/lib/libavformat.so"
+      "/opt/ffmpeg/lib/libavutil.so"
+      "/opt/ffmpeg/lib/libswscale.so"
+      "/opt/ffmpeg/lib/libswresample.so" )
+  include_directories("/opt/ffmpeg/include")
+ENDIF()
 
 # Find Python
 set(Python_ADDITIONAL_VERSIONS 3.4)
 find_package(PythonLibs 3 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
+
+# Numpy on Windows
+IF(MINGW)
+  include_directories("C:/Python34/Lib/site-packages/numpy/core/include")
+ENDIF()
 
 file(GLOB AutoFlight_SRC
     "src/*.h"
@@ -106,23 +139,44 @@ qt5_add_resources(AutoFlight_RCCS "${PROJECT_SOURCE_DIR}/src/resources.qrc")
 add_executable(AutoFlight ${AutoFlight_SRC} ${AutoFlight_RCCS})
 
 # Update BUILD_NUMBER in afconstants.h header
-add_custom_target(
-  generate_build_number
-  COMMAND cd ${PROJECT_SOURCE_DIR} && python3 "${PROJECT_SOURCE_DIR}/cmake/update_build_number.py"
-)
+IF(MINGW)
+	add_custom_target(
+	  generate_build_number
+	  COMMAND cd ${PROJECT_SOURCE_DIR} && python "${PROJECT_SOURCE_DIR}/cmake/update_build_number.py"
+	)
+ELSE()
+	add_custom_target(
+	  generate_build_number
+	  COMMAND cd ${PROJECT_SOURCE_DIR} && python3 "${PROJECT_SOURCE_DIR}/cmake/update_build_number.py"
+	)
+ENDIF()
 add_dependencies(AutoFlight generate_build_number)
 
-target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/../libdrone/build/libdrone/libdrone.so")
 target_link_libraries(AutoFlight ${Boost_LIBRARIES})
 target_link_libraries(AutoFlight ${OpenCV_LIBS})
 target_link_libraries(AutoFlight ${FFMPEG_LIBRARIES})
-target_link_libraries(AutoFlight ${ZLIB_LIBRARIES})
 target_link_libraries(AutoFlight ${PYTHON_LIBRARIES})
-target_link_libraries(AutoFlight GL x264)
+IF(MINGW)
+  target_link_libraries(AutoFlight opengl32 ws2_32)
+ELSE()
+  target_link_libraries(AutoFlight GL x264)
+ENDIF()
 
 # Link libraries in ../lib
-target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/lib/release-linux64/libstem_gamepad.a")
-target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/lib/release-linux64/libqscintilla2.a")
+IF(MINGW)
+  target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/lib/release-win32/libstem_gamepad.a" winmm)
+  target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/lib/release-win32/libqscintilla2.a")
+ELSE()
+  target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/lib/release-linux64/libstem_gamepad.a")
+  target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/lib/release-linux64/libqscintilla2.a")
+ENDIF()
+
+# Link libdrone
+IF(MINGW)
+  target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/../libdrone/build/libdrone/drone.dll")
+ELSE()
+  target_link_libraries(AutoFlight "${PROJECT_SOURCE_DIR}/../libdrone/build/libdrone/libdrone.so")
+ENDIF()
 
 # Use the Widgets module from Qt 5
 qt5_use_modules(AutoFlight Widgets PrintSupport WebKit WebKitWidgets OpenGL)
