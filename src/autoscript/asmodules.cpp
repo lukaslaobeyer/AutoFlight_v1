@@ -1,3 +1,4 @@
+#include <dronehelper.h>
 #include "asmodules.h"
 
 #define CHECK_RATE 25 // Every how many milliseconds it should be checked if a script abort has been requested
@@ -23,7 +24,7 @@ bool Control::takeOff()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Taking off", ssui)
 
-	//TODO: return d->drone_takeOff();
+	return drone_takeOff(d);
 	return false;
 }
 
@@ -32,7 +33,7 @@ bool Control::land()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Landing", ssui)
 
-	//TODO: return d->drone_land();
+	return drone_land(d);
 	return false;
 }
 
@@ -48,7 +49,7 @@ bool Control::move(float phi, float theta, float gaz, float yaw)
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
 
-	//TODO: return d->drone_move(phi, theta, gaz, yaw);
+	return drone_setAttitudeRel(d, theta, phi, yaw, gaz);
 	return false;
 }
 
@@ -64,8 +65,12 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
 
-	//TODO: this
-	/*if(d->drone_getLinearVelocity().vx != 0) // Check if linear velocity data is real
+    std::shared_ptr<const drone::navdata> data = d->getNavdata();
+    if(data == nullptr)
+    {
+        return false;
+    }
+	if(data->linearvelocity[0] != 0) // Check if linear velocity data is real
 	{
 		double distance = centimeters / 100.0;
 
@@ -73,14 +78,16 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 		double speedsum = 0;
 		int iteration_number = 0;
 
-		double altitude_at_beginning = d->drone_getAltitude();
+		double altitude_at_beginning = data->altitude;
 
 		move(phi, theta, gaz, yaw);
 
 		bool completed = false;
 		while(!completed)
 		{
-			iteration_number++;
+            data = d->getNavdata();
+
+            iteration_number++;
 
 			boost::this_thread::sleep_for(boost::chrono::milliseconds(CHECK_RATE));
 
@@ -90,13 +97,13 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 			}
 			else if(gaz == 0) // Ignore altitude readings
 			{
-				ardrone::linearvelocity v = d->drone_getLinearVelocity();
+                Eigen::Vector3f v = data->linearvelocity;
 
 				time += CHECK_RATE / 1000;
-				speedsum += sqrt(v.vx*v.vx + v.vy*v.vy);
-				double avaragespeed = speedsum / iteration_number;
+				speedsum += sqrt(v[0]*v[0] + v[1]*v[1]);
+				double averagespeed = speedsum / iteration_number;
 
-				if(avaragespeed * time >= distance)
+				if(averagespeed * time >= distance)
 				{
 					completed = true;
 				}
@@ -107,15 +114,15 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 			}
 			else // Combined altitude and pitch/roll distance measurement
 			{
-				ardrone::linearvelocity v = d->drone_getLinearVelocity();
+                Eigen::Vector3f v = data->linearvelocity;
 
 				time += CHECK_RATE / 1000;
-				speedsum += sqrt(v.vx*v.vx + v.vy*v.vy);
-				double avaragespeed = speedsum / iteration_number;
+                speedsum += sqrt(v[0]*v[0] + v[1]*v[1]);
+				double averagespeed = speedsum / iteration_number;
 
-				double deltaAltitude = abs(d->drone_getAltitude()-altitude_at_beginning);
+				double deltaAltitude = abs(data->altitude - altitude_at_beginning);
 
-				if(sqrt(avaragespeed * time + deltaAltitude) >= distance)
+				if(sqrt(averagespeed * time + deltaAltitude) >= distance)
 				{
 					completed = true;
 				}
@@ -127,14 +134,14 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 			}
 		}
 
-		d->drone_hover();
+		drone_hover(d);
 
 		return completed;
 	}
 	else
-	{*/
+	{
 		return false; // Something is wrong with the vertical camera. Linear velocity reported to be 0, which is not possible
-	//}
+	}
 }
 
 bool Control::move_time(float phi, float theta, float gaz, float yaw, int milliseconds)
@@ -337,7 +344,7 @@ bool Control::hover()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Hovering", ssui)
 
-	//TODO: return d->drone_hover();
+	return drone_hover(d);
 	return false;
 }
 
@@ -384,8 +391,15 @@ float Sensors::getAltitude()
 	ASSERT_ARDRONE_F(d)
 	SIMULATE_INPUT_F(sim, "Please enter a simulated value for the altitude of the drone", "m", ssui)
 
-	//TODO: return d->drone_getAltitude();
-	return 0;
+    std::shared_ptr<const drone::navdata> data = d->getNavdata();
+    if(data)
+    {
+        return data->altitude;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 float Sensors::getOrientation(std::string axis)
@@ -393,24 +407,28 @@ float Sensors::getOrientation(std::string axis)
 	ASSERT_ARDRONE_F(d)
 	SIMULATE_INPUT_F(sim, std::string("Please enter a simulated angle for the drone's ").append(axis.append(" axis (-180 to +180)")), "degree", ssui)
 
-	//TODO: this
-	/*
+    std::shared_ptr<const drone::navdata> data = d->getNavdata();
+    if(data == nullptr)
+    {
+        return 0;
+    }
+
 	if(axis == "YAW")
 	{
-		return d->drone_getOrientation().yaw;
+		return data->attitude[2];
 	}
 	else if(axis == "PITCH")
 	{
-		return d->drone_getOrientation().pitch;
+        return data->attitude[0];
 	}
 	else if(axis == "ROLL")
 	{
-		return d->drone_getOrientation().roll;
+        return data->attitude[1];
 	}
 	else
-	{*/
+	{
 		return -1;
-	//}
+	}
 }
 
 float Sensors::getOrientation360(std::string axis, bool clockwise)
@@ -472,24 +490,28 @@ float Sensors::getLinearVelocity(std::string axis)
 	ASSERT_ARDRONE_F(d)
 	SIMULATE_INPUT_F(sim, std::string("Please enter a simulated linear velocity on the drone's ").append(axis.append(" axis")), "m/s", ssui)
 
-	//TODO: this
-	/*
+    std::shared_ptr<const drone::navdata> data = d->getNavdata();
+    if(data == nullptr)
+    {
+        return 0;
+    }
+
 	if(axis == "X")
 	{
-		return d->drone_getLinearVelocity().vx;
+		return data->linearvelocity[0];
 	}
 	else if(axis == "Y")
 	{
-		return d->drone_getLinearVelocity().vy;
+        return data->linearvelocity[1];
 	}
 	else if(axis == "Z")
 	{
-		return d->drone_getLinearVelocity().vz;
+        return data->linearvelocity[2];
 	}
 	else
-	{*/
+	{
 		return -1;
-	//}
+	}
 }
 
 float Sensors::getBatteryLevel()
@@ -497,8 +519,13 @@ float Sensors::getBatteryLevel()
 	ASSERT_ARDRONE_F(d)
 	SIMULATE_INPUT_F(sim, "Please enter a simulated value for the battery level of the drone", "%", ssui)
 
-	//TODO: return d->drone_getBatteryStatus();
-	return 0;
+    std::shared_ptr<const drone::navdata> data = d->getNavdata();
+    if(data == nullptr)
+    {
+        return 0;
+    }
+
+    return data->batterystatus;
 }
 
 //////////// UTILITY FUNCTIONS ////////////
@@ -523,7 +550,14 @@ bool Util::isFlying()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_INPUT_B(sim, "Is the drone flying?", ssui)
 
-	//TODO: return d->drone_isFlying();
+	std::shared_ptr<const drone::navdata> data = d->getNavdata();
+	if(data == nullptr)
+	{
+		return false;
+	}
+
+	return data->flying;
+
 	return false;
 }
 
@@ -550,8 +584,7 @@ bool Util::flatTrim()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Calibrating gyroscope", ssui)
 
-	//TODO: return d->drone_flattrim();
-	return false;
+	return drone_flattrim(d);
 }
 
 bool Util::calibrateMagnetometer()

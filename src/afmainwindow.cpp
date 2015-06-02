@@ -25,9 +25,6 @@
 
 #include <boost/filesystem.hpp>
 
-// When on a netbook with limited space, use these values as minimum screen size:
-#define MIN_WIDTH 1024
-#define MIN_HEIGHT 600
 // On a normal sized screen, minimum screen size should be:
 #define PREF_WIDTH 1270
 #define PREF_HEIGHT 775
@@ -43,7 +40,7 @@ void AFMainWindow::setWindowAttributes()
 
 	setWindowTitle(QString::fromStdString(title));
 	setWindowIcon(QIcon(":/resources/icon.png"));
-	setMinimumSize(PREF_WIDTH, PREF_HEIGHT); //TODO: Netbook support
+	setMinimumSize(PREF_WIDTH, PREF_HEIGHT);
 }
 
 AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent)

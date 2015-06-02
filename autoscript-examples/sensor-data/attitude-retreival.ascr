@@ -1,0 +1,10 @@
+import math
+import time
+
+print("Yaw\tPitch\tRoll")
+
+for i in range(50):
+    print("%.1f" % (sensors.getOrientation("YAW") * (180.0/math.pi)) + '\t'
+          "%.1f" % (sensors.getOrientation("PITCH") * (180.0/math.pi)) + '\t'
+          "%.1f" % (sensors.getOrientation("ROLL") * (180.0/math.pi)))
+    time.sleep(0.1)

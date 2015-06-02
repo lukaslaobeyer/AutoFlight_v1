@@ -1,5 +1,8 @@
 #include "asengine.h"
 #include "asmodules.h"
+
+#include <dronehelper.h>
+
 #include "opencv/asmodules_opencv.h"
 #include <string>
 #include <boost/filesystem.hpp>
@@ -211,13 +214,13 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 
 		py::exec(py::str(script), global_namespace, local_namespace);
 
-		//TODO: _drone->drone_hover();
+		drone_hover(_drone);
 
 		error = false;
 	}
 	catch(const py::error_already_set &ex)
 	{
-		//TODO: _drone->drone_hover();
+		drone_hover(_drone);
 
 		if(e != NULL)
 		{
