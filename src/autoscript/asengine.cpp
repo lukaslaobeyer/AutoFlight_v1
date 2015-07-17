@@ -127,7 +127,7 @@ vector<string> ASEngine::getAvailableFunctions()
 			"control.down(speed)",
 			"control.down_time(speed, milliseconds)",
 			"control.down_distance(speed, centimeters)",
-			"control.rotate(speed, degrees, clockwise)",
+			"control.rotate(speed, degrees)",
 			"control.hover()",
 			"control.flip(direction)",
 

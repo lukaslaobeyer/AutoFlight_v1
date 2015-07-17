@@ -120,7 +120,7 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
                 speedsum += sqrt(v[0]*v[0] + v[1]*v[1]);
 				double averagespeed = speedsum / iteration_number;
 
-				double deltaAltitude = abs(data->altitude - altitude_at_beginning);
+				double deltaAltitude = fabs(data->altitude - altitude_at_beginning);
 
 				if(sqrt(averagespeed * time + deltaAltitude) >= distance)
 				{
@@ -263,49 +263,28 @@ bool Control::down_distance(float speed, float centimeters)
 	return move_distance(0, 0, -speed, 0, centimeters);
 }
 
-bool Control::rotate(float speed, float degs, bool clockwise)
+bool Control::rotate(float speed, float degs)
 {
 	ASSERT_ARDRONE_B(d)
 
 	if(sim)
 	{
 		std::stringstream description;
-		description << "Rotating " << degs << " degrees with yaw = ";
-		if(!clockwise)
-		{
-			description << "-";
-		}
-		description << speed << ".";
-
+		description << "Rotating " << degs << " degrees with yaw = " << speed << ".";
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
 
-	//TODO: this
-	/*
-	if(degs < 0)
-	{
-		clockwise = !clockwise;
-		degs *= -1;
-	}
-
-	float initialHeading = d->drone_getRelativeHeading(clockwise);
+	float initialHeading = d->getNavdata()->attitude(2);
 	float previousHeading = initialHeading;
 	float degreesRotated = 0;
 
-	if(clockwise)
-	{
-		move(0, 0, 0, speed);
-	}
-	else
-	{
-		move(0, 0, 0, -speed);
-	}
+    move(0, 0, 0, speed);
 
 	bool complete = false;
 
 	while(!complete)
 	{
-		float heading = d->drone_getRelativeHeading(clockwise);
+		float heading = d->getNavdata()->attitude(2);
 
 		if(heading >= previousHeading)
 		{
@@ -313,7 +292,7 @@ bool Control::rotate(float speed, float degs, bool clockwise)
 		}
 		else
 		{
-			// Just got from (for example) 246 to 5 degrees
+			// Just crossed the 0 degree mark
 			degreesRotated += (360 - previousHeading) + heading;
 		}
 
@@ -335,7 +314,7 @@ bool Control::rotate(float speed, float degs, bool clockwise)
 
 	hover();
 
-	return complete;*/
+	return complete;
 	return false;
 }
 

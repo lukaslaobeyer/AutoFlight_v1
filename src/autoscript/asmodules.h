@@ -43,7 +43,7 @@ class Control
 		bool down_time(float speed, int milliseconds);
 		bool down_distance(float speed, float centimeters);
 
-		bool rotate(float speed, float degs, bool clockwise);
+		bool rotate(float speed, float degs);
 
 		bool hover();
 
