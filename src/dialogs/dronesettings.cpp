@@ -1,7 +1,7 @@
 #include <QtWidgets>
-#include "dronesettings.h.todo"
+#include "dronesettings.h"
 
-DroneSettings::DroneSettings(ARDroneConfiguration *ardsettings, QWidget *parent) : QDialog(parent)
+DroneSettings::DroneSettings(drone::config config, QWidget *parent) : QDialog(parent)
 {
 	setWindowTitle(tr("AR.Drone Flight Settings"));
 
@@ -15,14 +15,12 @@ DroneSettings::DroneSettings(ARDroneConfiguration *ardsettings, QWidget *parent)
 	QLabel *vz_max = new QLabel(tr("Max. vertical velocity"));
 	QLabel *vyaw_max = new QLabel(tr("Max. yaw rotation speed"));
 	QLabel *outdoor = new QLabel(tr("Outdoor flight"));
-	QLabel *no_hull = new QLabel(tr("Flight without indoor hull"));
 
 	layout->addWidget(alt_max, 0, 0);
 	layout->addWidget(tilt_max, 1, 0);
 	layout->addWidget(vz_max, 2, 0);
 	layout->addWidget(vyaw_max, 3, 0);
 	layout->addWidget(outdoor, 4, 0);
-	layout->addWidget(no_hull, 5, 0);
 
 	alt_max_slider = new QSlider(Qt::Horizontal);
 	alt_max_slider->setTracking(true);
@@ -42,14 +40,11 @@ DroneSettings::DroneSettings(ARDroneConfiguration *ardsettings, QWidget *parent)
 
 	outdoor_ckbx = new QCheckBox();
 
-	no_hull_ckbx = new QCheckBox();
-
 	layout->addWidget(alt_max_slider, 0, 1);
 	layout->addWidget(tilt_max_slider, 1, 1);
 	layout->addWidget(vz_max_slider, 2, 1);
 	layout->addWidget(vyaw_max_slider, 3, 1);
 	layout->addWidget(outdoor_ckbx, 4, 1);
-	layout->addWidget(no_hull_ckbx, 5, 1);
 
 	alt_max_spinner = new QDoubleSpinBox();
 	alt_max_spinner->setDecimals(1);
@@ -101,27 +96,18 @@ DroneSettings::DroneSettings(ARDroneConfiguration *ardsettings, QWidget *parent)
 	QObject::connect(bbox->button(QDialogButtonBox::Apply), SIGNAL(clicked()), this, SLOT(handleApply()));
 
 	// Apply control values
-	if(ardsettings != nullptr)
+	if(config.valid)
 	{
-		alt_max_slider->setValue((int)(ardsettings->altitude_max * 10.0));
-		alt_max_spinner->setValue(ardsettings->altitude_max);
-		tilt_max_slider->setValue((int)(ardsettings->pitch_roll_max));
-		tilt_max_spinner->setValue((int) ardsettings->pitch_roll_max);
-		vz_max_slider->setValue((int)(ardsettings->vertical_speed_max * 100.0));
-		vz_max_spinner->setValue(ardsettings->vertical_speed_max);
-		vyaw_max_slider->setValue((int)(ardsettings->yaw_speed_max));
-		vyaw_max_spinner->setValue((int) ardsettings->yaw_speed_max);
+		alt_max_slider->setValue((int)(config.limits.altitude * 10.0));
+		alt_max_spinner->setValue(config.limits.altitude);
+		tilt_max_slider->setValue((int)(config.limits.angle * (180.0f / M_PI)));
+		tilt_max_spinner->setValue((int) (config.limits.angle * (180.0f / M_PI)));
+		vz_max_slider->setValue((int)(config.limits.vspeed * 100.0));
+		vz_max_spinner->setValue(config.limits.vspeed);
+		vyaw_max_slider->setValue((int)(config.limits.yawspeed * (180.0f / M_PI)));
+		vyaw_max_spinner->setValue((int) (config.limits.yawspeed * (180.0f / M_PI)));
 
-		if(ardsettings->no_hull)
-		{
-			no_hull_ckbx->setCheckState(Qt::Checked);
-		}
-		else
-		{
-			no_hull_ckbx->setCheckState(Qt::Unchecked);
-		}
-
-		if(ardsettings->outdoor_flight)
+		if(config.outdoor)
 		{
 			outdoor_ckbx->setCheckState(Qt::Checked);
 		}
@@ -162,44 +148,24 @@ void DroneSettings::valueChanged(double value)
 
 	if(sender == alt_max_spinner)
 	{
-		alt_max_slider->setValue(value * 10);
+		alt_max_slider->setValue((int) (value * 10.0f));
 	}
 	else if(sender == vz_max_spinner)
 	{
-		vz_max_slider->setValue(value * 100);
+		vz_max_slider->setValue((int) (value * 100.0f));
 	}
 }
 
 void DroneSettings::handleApply()
 {
-	// Apply changes
-	if(_ardsettings == nullptr)
-	{
-		_ardsettings = new ARDroneConfiguration;
-	}
+	_config.limits.altitude = (float) alt_max_spinner->value();
+	_config.limits.angle = (float) (tilt_max_spinner->value() / (180.0f / M_PI));
+	_config.limits.vspeed = (float) vz_max_spinner->value();
+	_config.limits.yawspeed = (float) (vyaw_max_spinner->value() / (180.0f / M_PI));
 
-	_ardsettings->altitude_max = alt_max_spinner->value();
-	_ardsettings->pitch_roll_max = tilt_max_spinner->value();
-	_ardsettings->vertical_speed_max = vz_max_spinner->value();
-	_ardsettings->yaw_speed_max = vyaw_max_spinner->value();
+	_config.outdoor = (outdoor_ckbx->checkState() == Qt::Checked);
 
-	if(no_hull_ckbx->checkState() == Qt::Checked)
-	{
-		_ardsettings->no_hull = true;
-	}
-	else
-	{
-		_ardsettings->no_hull = false;
-	}
-
-	if(outdoor_ckbx->checkState() == Qt::Checked)
-	{
-		_ardsettings->outdoor_flight = true;
-	}
-	else
-	{
-		_ardsettings->outdoor_flight = false;
-	}
+	_config.valid = true;
 }
 
 void DroneSettings::handleAccept()
@@ -208,7 +174,7 @@ void DroneSettings::handleAccept()
 	accept();
 }
 
-ARDroneConfiguration *DroneSettings::getConfiguration()
+drone::config DroneSettings::getConfiguration()
 {
-	return _ardsettings;
+	return _config;
 }

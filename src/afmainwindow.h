@@ -83,7 +83,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 	private Q_SLOTS:
 		void attemptConnection();
 		void showControlConfigDialog();
-		//void showDroneConfigDialog();
+		void showDroneConfigDialog();
 		void videoFrameAvailable(QImage f);
 		void toggleHUD(bool showHUD);
 		void launchAutoScriptIDE();

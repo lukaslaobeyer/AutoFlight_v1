@@ -14,10 +14,10 @@
 #include "dialogs/selectcontroller.h"
 #include "dialogs/configurecontrols.h"
 #include "dialogs/welcomedialog.h"
-//#include "dialogs/dronesettings.h"
+#include "dialogs/dronesettings.h"
 
 #include "tools/controllerconfigurationfileio.h"
-//#include "tools/ardroneconfigurationfileio.h"
+#include "tools/droneconfigurationfileio.h"
 
 #include <QtWidgets>
 
@@ -430,20 +430,20 @@ void AFMainWindow::launchImageProcessingPipelineEditor()
 	_imgProc->show();
 }
 
-/*void AFMainWindow::showDroneConfigDialog()
+void AFMainWindow::showDroneConfigDialog()
 {
-	ARDroneConfiguration *conf = ARDroneConfigurationFileIO::loadARDroneConfiguration(0);
-	DroneSettings ds(conf, this);
+	drone::config savedConfig = DroneConfigurationFileIO::loadDroneConfiguration(0);
+	DroneSettings ds(savedConfig, this);
 	ds.exec();
 
-	ARDroneConfiguration *new_conf = ds.getConfiguration();
+	drone::config newConfig = ds.getConfiguration();
 
-	if(new_conf != nullptr)
+	if(newConfig.valid)
 	{
-		ARDroneConfigurationFileIO::saveARDroneConfiguration(new_conf, 0);
-		_af->ardrone()->drone_setConfiguration(*new_conf);
+		DroneConfigurationFileIO::saveDroneConfiguration(newConfig, 0);
+		_af->drone()->setConfig(newConfig);
 	}
-}*/
+}
 
 void AFMainWindow::showControlConfigDialog()
 {
