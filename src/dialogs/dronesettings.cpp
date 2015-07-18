@@ -3,7 +3,7 @@
 
 DroneSettings::DroneSettings(drone::config config, QWidget *parent) : QDialog(parent)
 {
-	setWindowTitle(tr("AR.Drone Flight Settings"));
+	setWindowTitle(tr("Drone Flight Settings"));
 
 	setMinimumWidth(600);
 
@@ -78,7 +78,7 @@ DroneSettings::DroneSettings(drone::config config, QWidget *parent) : QDialog(pa
 	QSpacerItem *spacer = new QSpacerItem(10, 25, QSizePolicy::Expanding, QSizePolicy::Expanding);
 	layout->addItem(spacer, 6, 0, 1, 4);
 
-	QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Apply);
+	QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 	layout->addWidget(bbox, 7, 0, 1, 4, Qt::AlignCenter);
 
 	QObject::connect(alt_max_slider, SIGNAL(valueChanged(int)), this, SLOT(valueChanged(int)));
@@ -93,7 +93,6 @@ DroneSettings::DroneSettings(drone::config config, QWidget *parent) : QDialog(pa
 
 	QObject::connect(bbox, SIGNAL(accepted()), this, SLOT(handleAccept()));
 	QObject::connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
-	QObject::connect(bbox->button(QDialogButtonBox::Apply), SIGNAL(clicked()), this, SLOT(handleApply()));
 
 	// Apply control values
 	if(config.valid)
@@ -156,7 +155,7 @@ void DroneSettings::valueChanged(double value)
 	}
 }
 
-void DroneSettings::handleApply()
+void DroneSettings::handleAccept()
 {
 	_config.limits.altitude = (float) alt_max_spinner->value();
 	_config.limits.angle = (float) (tilt_max_spinner->value() / (180.0f / M_PI));
@@ -166,11 +165,7 @@ void DroneSettings::handleApply()
 	_config.outdoor = (outdoor_ckbx->checkState() == Qt::Checked);
 
 	_config.valid = true;
-}
 
-void DroneSettings::handleAccept()
-{
-	handleApply();
 	accept();
 }
 

@@ -343,11 +343,11 @@ void VideoDisplay::paintEvent(QPaintEvent *)
     	p.setPen(Qt::white);
 
     	QFont f1("Sans Serif", 28, QFont::Bold);
-    	QString text1 = tr("Connection to AR.Drone lost");
+    	QString text1 = tr("Connection to drone lost");
     	QFontMetrics fm1(f1);
 
     	QFont f2("Sans Serif", 14, QFont::Bold);
-    	QString text2 = tr("Once you are in the AR.Drone's WiFi range, you can click 'Connect to AR.Drone' again.");
+    	QString text2 = tr("Reconnect manually once the WiFi connection is reestablished");
     	QFontMetrics fm2(f2);
 
     	p.setFont(f1);

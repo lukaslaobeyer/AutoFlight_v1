@@ -23,7 +23,6 @@ class DroneSettings : public QDialog
 		void valueChanged(double val);
 
 		void handleAccept();
-		void handleApply();
 	private:
 		drone::config _config{drone::limits{0, 0, 0, 0}, false, false};
 

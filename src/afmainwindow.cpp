@@ -112,6 +112,8 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	}
 
 	showFirstRunInfoIfRequired();
+
+    loadDroneConfiguration();
 }
 
 void AFMainWindow::showFirstRunInfoIfRequired()
@@ -344,7 +346,7 @@ void AFMainWindow::attemptConnection()
 {
 	if(!_af->attemptConnectionToDrone())
 	{
-		QMessageBox::warning(this, tr("Could not connect"), tr("<qt>AutoFlight could not connect to the AR.Drone. Please make sure that you are connected to it over WiFi and try again.<br><br><b>Note:</b><br>It may be necessary to reset the AR.Drone by pressing the button under the battery tray (leaving the battery plugged in but outside the tray).</qt>"));
+		QMessageBox::warning(this, tr("Could not connect"), tr("<qt>AutoFlight could not connect to the drone. Please make sure that you are connected to it over WiFi and try again.<br><br><b>Note (AR.Drone 2.0 only):</b><br>It may be necessary to reset the AR.Drone by pressing the button under the battery tray (leaving the battery plugged in but outside the tray).</qt>"));
 	}
 }
 
@@ -433,16 +435,30 @@ void AFMainWindow::launchImageProcessingPipelineEditor()
 void AFMainWindow::showDroneConfigDialog()
 {
 	drone::config savedConfig = DroneConfigurationFileIO::loadDroneConfiguration(0);
+
+	if(!savedConfig.valid)
+    {
+        // Load default config
+        savedConfig = _af->drone()->getConfig();
+    }
+
 	DroneSettings ds(savedConfig, this);
 	ds.exec();
 
 	drone::config newConfig = ds.getConfiguration();
 
 	if(newConfig.valid)
-	{
+    {
 		DroneConfigurationFileIO::saveDroneConfiguration(newConfig, 0);
 		_af->drone()->setConfig(newConfig);
 	}
+}
+
+void AFMainWindow::loadDroneConfiguration()
+{
+    drone::config savedConfig = DroneConfigurationFileIO::loadDroneConfiguration(0);
+
+    _af->drone()->setConfig(savedConfig);
 }
 
 void AFMainWindow::showControlConfigDialog()

@@ -57,6 +57,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 		void closeEvent(QCloseEvent *);
 		void createMenuBar();
 		void showFirstRunInfoIfRequired();
+		void loadDroneConfiguration();
 		QWidget *createVerticalToolbar();
 		QWidget *createHorizontalToolbar();
 
