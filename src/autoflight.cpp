@@ -39,10 +39,17 @@ AutoFlight::AutoFlight(drone_type drone_type, string ip)
 	_srec->addEvent("ProgramStart");
 
 	//TODO: Session recording; _drone->setSessionRecorder(_srec);
+
+	if(drone_type == BEBOP)
+	{
+		bebop()->addNavdataListener(&mavlink);
+		mavlink.start();
+	}
 }
 
 AutoFlight::~AutoFlight()
 {
+	mavlink.stop();
 	if(_drone != nullptr)
 	{
 		_drone->stopUpdateLoop();
@@ -160,16 +167,6 @@ bool AutoFlight::attemptConnectionToDrone()
 		cout << "Connected!\n";
 		break;
 	}
-
-		// TODO: Drone configuration
-		/*
-		ARDroneConfiguration *config = ARDroneConfigurationFileIO::loadARDroneConfiguration(0);
-		if(config != nullptr)
-		{
-			_drone->drone_setConfiguration(*config);
-			cout << "AR.Drone configured." << endl;
-		}
-		*/
 
 	if(connected == drone::connectionstatus::CONNECTION_ESTABLISHED || connected == drone::connectionstatus::ALREADY_CONNECTED)
 	{

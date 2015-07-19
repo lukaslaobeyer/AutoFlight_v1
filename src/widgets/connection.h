@@ -3,21 +3,22 @@
 
 #include <QWidget>
 #include <QPushButton>
-#include <interface/inavdatalistener.h>
 
-class Connection : public QWidget, public INavdataListener
+#include "../qinterface/qconnectionstatuslistener.h"
+
+class Connection : public QWidget, public QConnectionStatusListener
 {
 	Q_OBJECT
 	
 	public:
 		explicit Connection(QWidget *parent = 0);
-		void navdataAvailable(std::shared_ptr<const drone::navdata> navdata);
+	public Q_SLOTS:
+		void connectionEstablished();
+		void connectionLost();
 	private:
 		QPushButton *connectDrone;
-		QPushButton *connectArduino;
 	Q_SIGNALS:
 		void droneConnectionRequested();
-		void arduinoConnectionRequested();
 };
 
 #endif

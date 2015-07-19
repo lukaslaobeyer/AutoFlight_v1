@@ -23,10 +23,6 @@ Connection::Connection(QWidget *parent) : QWidget(parent)
 			connectDrone = new QPushButton(tr("Connect to Drone"));
 			connectDrone->setStyleSheet("padding: 4px;");
 			contentLayout->addWidget(connectDrone);
-			
-			connectArduino = new QPushButton(tr("Connect to Arduino"));
-			connectArduino->setStyleSheet("padding: 4px;");
-			//contentLayout->addWidget(connectArduino);
 		
 		TitledBox *box = new TitledBox(tr("Connection"), content);
 		layout->addWidget(box);
@@ -41,10 +37,14 @@ Connection::Connection(QWidget *parent) : QWidget(parent)
 	setLayout(layout);
 
 	connect(connectDrone, SIGNAL(clicked()), this, SIGNAL(droneConnectionRequested()));
-	connect(connectArduino, SIGNAL(clicked()), this, SIGNAL(arduinoConnectionRequested()));
 }
 
-void Connection::navdataAvailable(std::shared_ptr<const drone::navdata> navdata)
+void Connection::connectionEstablished()
 {
-	
+	connectDrone->setDisabled(true);
+}
+
+void Connection::connectionLost()
+{
+	connectDrone->setDisabled(false);
 }

@@ -13,6 +13,7 @@
 #include <drone.h>
 #include <drones/ardrone2/ardrone2.h>
 #include <drones/bebop/bebop.h>
+#include <src/mavlink/mavlinkproxy.h>
 
 #include "autoscript/asengine.h"
 #include "tools/sessionrecorder.h"
@@ -52,6 +53,8 @@ class AutoFlight
 		std::shared_ptr<Drone> _drone = nullptr;
 		ASEngine *_ase = nullptr;
 		SessionRecorder *_srec = nullptr;
+
+		MAVLinkProxy mavlink;
 
 		pugi::xml_document _sessionRecDoc;
 };

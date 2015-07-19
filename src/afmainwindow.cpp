@@ -24,6 +24,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <boost/filesystem.hpp>
+#include <src/widgets/gps.h>
 
 // On a normal sized screen, minimum screen size should be:
 #define PREF_WIDTH 1270
@@ -159,6 +160,7 @@ void AFMainWindow::connectionLost()
 
 void AFMainWindow::connectionEstablished()
 {
+	Q_EMIT connectionEstablishedSignal();
 	//_imgProcTest->startProcessing();
 }
 
@@ -282,7 +284,18 @@ QWidget *AFMainWindow::createVerticalToolbar()
 
 	Connection *c = new Connection();
 	QObject::connect(c, SIGNAL(droneConnectionRequested()), this, SLOT(attemptConnection()));
+    QObject::connect(this, SIGNAL(connectionLostSignal()), c, SLOT(connectionLost()));
+    QObject::connect(this, SIGNAL(connectionEstablishedSignal()), c, SLOT(connectionEstablished()));
 	layout->addWidget(c);
+
+    layout->addSpacing(10);
+
+    if(_af->bebop())
+    {
+        GPS *gps = new GPS();
+        QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), gps, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
+        layout->addWidget(gps);
+    }
 
 	layout->addStretch();
 

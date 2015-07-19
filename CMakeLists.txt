@@ -117,6 +117,8 @@ file(GLOB AutoFlight_SRC
     "src/autoscript/opencv/*.hpp"
     "src/tools/*.h"
     "src/tools/*.cpp"
+    "src/mavlink/*.h"
+    "src/mavlink/*.cpp"
     "src/imgprocui/*.h"
     "src/imgprocui/*.cpp"
     "src/imgproc/*.h"
@@ -130,6 +132,8 @@ file(GLOB AutoFlight_SRC
     "lib/include/pugixml/*.cpp"
     "lib/include/glm/*.hpp"
     "lib/include/glm/core/*.hpp"
+    "lib/include/mavlink/*.h"
+    "lib/include/mavlink/common/*.h"
 )
 
 # Add the resources

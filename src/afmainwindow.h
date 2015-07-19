@@ -98,6 +98,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 		void videoFrameAvailableSignal(QImage frame);
 		//void controllerInputAvailableSignal(ControllerInput *in);
 		void connectionLostSignal();
+	    void connectionEstablishedSignal();
 };
 
 #endif
