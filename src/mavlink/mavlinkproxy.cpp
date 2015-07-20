@@ -1,6 +1,7 @@
 #include "mavlinkproxy.h"
 
 #include <future>
+#include <chrono>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -44,6 +45,17 @@ MAVLinkProxy::MAVLinkProxy() : _socket(_io_service, boost::asio::ip::udp::v4()),
     _attitude.rollspeed = 0;
     _attitude.yaw = 0;
     _attitude.yawspeed = 0;
+
+    _gps.time_usec = 0;
+    _gps.alt = 0;
+    _gps.lat = 0;
+    _gps.lon = 0;
+    _gps.eph = UINT16_MAX;
+    _gps.epv = UINT16_MAX;
+    _gps.vel = UINT16_MAX;
+    _gps.cog = UINT16_MAX;
+    _gps.fix_type = 0;
+    _gps.satellites_visible = 0;
 }
 
 void MAVLinkProxy::start()
@@ -63,6 +75,8 @@ void MAVLinkProxy::start()
 
         _navdata_timer.expires_from_now(boost::posix_time::milliseconds(MAVLINK_NAVDATA_INTERVAL));
         _navdata_timer.async_wait(boost::bind(&MAVLinkProxy::navdata, this));
+
+        _socket.async_receive_from(boost::asio::buffer(_received_msg_buf), _endpoint, boost::bind(&MAVLinkProxy::dataReceived, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
     }
 }
 
@@ -77,6 +91,10 @@ void MAVLinkProxy::stop()
 
 void MAVLinkProxy::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 {
+    unsigned long milliseconds_since_epoch =
+            std::chrono::system_clock::now().time_since_epoch() /
+            std::chrono::milliseconds(1);
+
     std::shared_ptr<const bebop::navdata> navdata = std::static_pointer_cast<const bebop::navdata>(nd);
 
     if(navdata->gps_fix)
@@ -93,16 +111,40 @@ void MAVLinkProxy::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
     _attitude.pitch = navdata->attitude(0);
     _attitude.roll = navdata->attitude(1);
     _attitude.yaw = navdata->attitude(2);
+    _attitude.time_boot_ms = (uint32_t) milliseconds_since_epoch;
+
+    if(navdata->gps_fix)
+    {
+        _gps.time_usec = milliseconds_since_epoch * 1000;
+        _gps.lat = (int32_t) (navdata->latitude * 1.0E7);
+        _gps.lon = (int32_t) (navdata->longitude * 1.0E7);
+        _gps.alt = (int32_t) (navdata->gps_altitude * 1000.0);
+        _gps.satellites_visible = navdata->gps_sats;
+        if(navdata->gps_sats < 4)
+        {
+            _gps.fix_type = 2;
+        }
+        else
+        {
+            _gps.fix_type = 3;
+        }
+    }
+    else
+    {
+        _gps.time_usec = milliseconds_since_epoch * 1000;
+        _gps.satellites_visible = 0;
+        _gps.fix_type = 0;
+    }
 }
 
 void MAVLinkProxy::connectionEstablished()
 {
-
+    _connected = true;
 }
 
 void MAVLinkProxy::connectionLost()
 {
-
+    _connected = false;
 }
 
 void MAVLinkProxy::heartbeat()
@@ -117,6 +159,11 @@ void MAVLinkProxy::heartbeat()
     uint8_t system_mode = MAV_MODE_PREFLIGHT;
     uint32_t custom_mode = 0;
     uint8_t system_state = MAV_STATE_STANDBY;
+
+    if(_connected)
+    {
+        system_mode = MAV_MODE_STABILIZE_DISARMED;
+    }
 
     if(_flying)
     {
@@ -141,10 +188,37 @@ void MAVLinkProxy::navdata()
     static mavlink_message_t msg;
     static uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 
-    mavlink_msg_attitude_encode(_mavlink_system.sysid, _mavlink_system.compid, &msg, &_attitude);
-    mavlink_msg_to_send_buffer(buf, &msg);
-    _socket.send_to(boost::asio::buffer(buf), _endpoint);
+    if(_attitude.time_boot_ms > 0)
+    {
+        mavlink_msg_attitude_encode(_mavlink_system.sysid, _mavlink_system.compid, &msg, &_attitude);
+        mavlink_msg_to_send_buffer(buf, &msg);
+        _socket.send_to(boost::asio::buffer(buf), _endpoint);
+    }
+
+    if(_gps.time_usec > 0)
+    {
+        mavlink_msg_gps_raw_int_encode(_mavlink_system.sysid, _mavlink_system.compid, &msg, &_gps);
+        mavlink_msg_to_send_buffer(buf, &msg);
+        _socket.send_to(boost::asio::buffer(buf), _endpoint);
+    }
 
     _navdata_timer.expires_from_now(boost::posix_time::milliseconds(MAVLINK_NAVDATA_INTERVAL));
     _navdata_timer.async_wait(boost::bind(&MAVLinkProxy::navdata, this));
+}
+
+void MAVLinkProxy::dataReceived(const boost::system::error_code &error, size_t received_bytes)
+{
+    static mavlink_message_t msg;
+    static mavlink_status_t status;
+
+    for(int i = 0; i < (int) received_bytes; i++)
+    {
+        if(mavlink_parse_char(MAVLINK_COMM_0, _received_msg_buf[i], &msg, &status))
+        {
+            printf("\nReceived packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
+        }
+    }
+
+    // Listen for next packet
+    _socket.async_receive_from(boost::asio::buffer(_received_msg_buf), _endpoint, boost::bind(&MAVLinkProxy::dataReceived, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
 }

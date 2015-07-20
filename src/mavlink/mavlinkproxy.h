@@ -33,6 +33,8 @@ class MAVLinkProxy : public INavdataListener, public IConnectionStatusListener
         void heartbeat();
         void navdata();
 
+        void dataReceived(const boost::system::error_code &error, size_t received_bytes);
+
         bool _worker_running = false;
 
         boost::asio::io_service _io_service;
@@ -45,9 +47,13 @@ class MAVLinkProxy : public INavdataListener, public IConnectionStatusListener
         boost::asio::deadline_timer _navdata_timer;
 
         bool _flying = false;
+        bool _connected = false;
         mavlink_system_t _mavlink_system;
         mavlink_sys_status_t _sys_status;
         mavlink_attitude_t _attitude;
+        mavlink_gps_raw_int_t _gps;
+
+        uint8_t _received_msg_buf[MAVLINK_MAX_PACKET_LEN];
 };
 
 #endif
