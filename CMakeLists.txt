@@ -134,6 +134,8 @@ file(GLOB AutoFlight_SRC
     "lib/include/glm/core/*.hpp"
     "lib/include/mavlink/*.h"
     "lib/include/mavlink/common/*.h"
+    "lib/include/ftp/*.h"
+    "lib/include/ftp/*.cpp"
 )
 
 # Add the resources

@@ -73,7 +73,7 @@ void ManualControl::processKeyPress(QKeyEvent *ke)
 				}
 				else
 				{
-					if(!drone_isArmed())
+					if(!drone_isArmed(_af->drone()))
 					{
 						_aw->showMessage(tr("Drone is not armed").toStdString());
 					}
@@ -165,14 +165,14 @@ void ManualControl::processKeyPress(QKeyEvent *ke)
 				if((ke->modifiers() & Qt::ShiftModifier) && (ke->modifiers() & Qt::AltModifier))
 				{
 					// Arm the drone
-					if(!drone_isArmed())
+					if(!drone_isArmed(_af->drone()))
 					{
-						drone_arm();
+						drone_arm(_af->drone());
 						_aw->showMessage(tr("Drone armed").toStdString());
 					}
 					else
 					{
-						drone_disarm();
+						drone_disarm(_af->drone());
 						_aw->showMessage(tr("Drone disarmed").toStdString());
 					}
 				}

@@ -24,7 +24,7 @@ bool Control::takeOff()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Taking off", ssui)
 
-	return drone_takeOff(d);
+	return drone_takeOff(d) == drone::OK;
 	return false;
 }
 
@@ -33,7 +33,7 @@ bool Control::land()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Landing", ssui)
 
-	return drone_land(d);
+	return drone_land(d) == drone::OK;
 	return false;
 }
 
@@ -49,7 +49,7 @@ bool Control::move(float phi, float theta, float gaz, float yaw)
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
 
-	return drone_setAttitudeRel(d, theta, phi, yaw, gaz);
+	return (drone_setAttitudeRel(d, theta, phi, yaw, gaz) == drone::OK);
 	return false;
 }
 
@@ -80,7 +80,11 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 
 		double altitude_at_beginning = data->altitude;
 
-		move(phi, theta, gaz, yaw);
+		bool ok = move(phi, theta, gaz, yaw);
+		if(!ok)
+		{
+			return false;
+		}
 
 		bool completed = false;
 		while(!completed)
@@ -156,7 +160,11 @@ bool Control::move_time(float phi, float theta, float gaz, float yaw, int millis
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
 
-	move(phi, theta, gaz, yaw);
+	bool ok = move(phi, theta, gaz, yaw);
+	if(!ok)
+	{
+		return false;
+	}
 
 	for(int i = 0; i < (milliseconds / CHECK_RATE); i++)
 	{
@@ -278,7 +286,11 @@ bool Control::rotate(float speed, float degs)
 	float previousHeading = initialHeading;
 	float degreesRotated = 0;
 
-    move(0, 0, 0, speed);
+    bool ok = move(0, 0, 0, speed);
+    if(!ok)
+    {
+        return false;
+    }
 
 	bool complete = false;
 
@@ -323,7 +335,7 @@ bool Control::hover()
 	ASSERT_ARDRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Hovering", ssui)
 
-	return drone_hover(d);
+	return drone_hover(d) == drone::OK;
 	return false;
 }
 
@@ -522,6 +534,14 @@ bool Util::isConnected()
 	SIMULATE_INPUT_B(sim, "Is the drone connected to the computer?", ssui)
 
 	return d->isConnected();
+}
+
+bool Util::isArmed()
+{
+    ASSERT_ARDRONE_B(d)
+    SIMULATE_INPUT_B(sim, "Is the drone armed?", ssui)
+
+    return d->isArmed();
 }
 
 bool Util::isFlying()

@@ -34,6 +34,8 @@
 		
 		<file>resources/visualpipeline_bg.png</file>
 		
+		<file>resources/af_controls.png</file>		
+		
 		<file>resources/welcome.png</file>
 	</qresource>
 </RCC>

@@ -82,6 +82,7 @@ class Util
 
 		bool isConnected();
 		bool isFlying();
+		bool isArmed();
 
 		bool startRecording();
 		bool stopRecording();

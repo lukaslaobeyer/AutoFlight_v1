@@ -30,7 +30,7 @@ Q_DECLARE_METATYPE(std::shared_ptr<const drone::navdata>)
 
 class ManualControl;
 
-class AFMainWindow : public QMainWindow, public INavdataListener, public IConnectionStatusListener, public IVideoListener, /*public IControllerInputListener,*/ public QVideoListener
+class AFMainWindow : public QMainWindow, public INavdataListener, public IStatusListener, public IConnectionStatusListener, public IVideoListener, /*public IControllerInputListener,*/ public QVideoListener
 {
 	Q_OBJECT
 
@@ -38,6 +38,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 		explicit AFMainWindow(AutoFlight *af, QWidget *parent = 0);
 
 		void navdataAvailable(std::shared_ptr<const drone::navdata> nd);
+		void statusUpdateAvailable(int status);
 		void videoFrameAvailable(cv::Mat f);
 		//void controllerInputAvailable(ControllerInput *in);
 		void connectionLost();
@@ -48,6 +49,8 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 		void hideMessages();
 		void flatTrimActionTriggered();
 		void calibrateMagnetometerActionTriggered();
+        void downloadBebopMedia();
+        void showDefaultKeyboardControls();
 		void showAboutDialog();
 		//void controllerInputAvailableSlot(ControllerInput *ci);
 	protected:
@@ -80,6 +83,8 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 
 		std::unique_ptr<ManualControl> _manualcontrol;
 
+        QProgressDialog *_bebopMediaDownload_busy = nullptr;
+
 		//ImageProcessor *_imgProcTest = NULL;
 	private Q_SLOTS:
 		void attemptConnection();
@@ -95,10 +100,13 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IConnec
 
 	Q_SIGNALS:
 		void navdataAvailableSignal(std::shared_ptr<const drone::navdata> nd);
+        void statusUpdateAvailableSignal(int status);
 		void videoFrameAvailableSignal(QImage frame);
 		//void controllerInputAvailableSignal(ControllerInput *in);
 		void connectionLostSignal();
 	    void connectionEstablishedSignal();
+
+		void bebopMediaDownloadFinishedSignal();
 };
 
 #endif

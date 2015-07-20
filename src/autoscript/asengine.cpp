@@ -52,6 +52,7 @@ BOOST_PYTHON_MODULE(autoscript)
 	py::class_<Util>("Util")
 				.def("isConnected", &Util::isConnected)
 				.def("isFlying", &Util::isFlying)
+                .def("isArmed", &Util::isArmed)
 				.def("stopRecording", &Util::stopRecording)
 				.def("startRecording", &Util::startRecording)
 				.def("flatTrim", &Util::flatTrim)
@@ -140,6 +141,7 @@ vector<string> ASEngine::getAvailableFunctions()
 
 			"util.isConnected()",
 			"util.isFlying()",
+			"util.isArmed()",
 			"util.startRecording()",
 			"util.stopRecording()",
 			"util.flatTrim()",

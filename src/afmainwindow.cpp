@@ -21,10 +21,17 @@
 
 #include <QtWidgets>
 
+#include <memory>
+#include <boost/bind.hpp>
+#include <boost/thread.hpp>
+
 #include <opencv2/opencv.hpp>
 
 #include <boost/filesystem.hpp>
 #include <src/widgets/gps.h>
+#include <src/widgets/status.h>
+#include <src/tools/bebopftp.h>
+#include <src/dialogs/bebopmediadownload.h>
 
 // On a normal sized screen, minimum screen size should be:
 #define PREF_WIDTH 1270
@@ -75,7 +82,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	//videoPanel->setAlignment(Qt::AlignCenter);
 	grid->addWidget(videoPanel, 0, 0, 1, 1);
 
-	videoPanel->setCurrentFrame(QImage(":/resources/autoflight.png"));
+	videoPanel->setCurrentFrame(QImage(":/resources/autoflight.png").scaledToWidth(600, Qt::SmoothTransformation));
 
 	horizontalToolbar = createHorizontalToolbar();
 	verticalToolbar = createVerticalToolbar();
@@ -86,6 +93,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	//_imgProcTest = new ImageProcessor();
 
 	_af->drone()->addNavdataListener(this);
+    _af->drone()->addStatusListener(this);
 	if(_af->fpvdrone())
 	{
 		_af->fpvdrone()->addVideoListener(this);
@@ -151,6 +159,11 @@ void AFMainWindow::hideMessages()
 void AFMainWindow::navdataAvailable(shared_ptr<const drone::navdata> nd)
 {
 	Q_EMIT navdataAvailableSignal(nd);
+}
+
+void AFMainWindow::statusUpdateAvailable(int status)
+{
+    Q_EMIT statusUpdateAvailableSignal(status);
 }
 
 void AFMainWindow::connectionLost()
@@ -219,7 +232,15 @@ void AFMainWindow::createMenuBar() {
 		tools->addAction(controlConfig);
 
 		QAction *imgProcEdit = new QAction(tr("&Image Processing Pipeline Editor"), this);
-		tools->addAction(imgProcEdit);
+		//tools->addAction(imgProcEdit);
+
+        if(_af->bebop())
+        {
+            tools->addSeparator();
+            QAction *mediaDownload = new QAction(tr("&Download Media stored on Bebop"), this);
+            QWidget::connect(mediaDownload, SIGNAL(triggered()), this, SLOT(downloadBebopMedia()));
+            tools->addAction(mediaDownload);
+        }
 
 		/* TODO: This
 		QAction *controlInfo = new QAction(tr("Controller Information"), this);
@@ -254,11 +275,15 @@ void AFMainWindow::createMenuBar() {
 		/* TODO: This
 		QAction *onlineHelp = new QAction(tr("Online Help"), this);
 		help->addAction(onlineHelp);
+        */
+        QAction *keyCtrls = new QAction(tr("&Keyboard piloting controls"), this);
+        help->addAction(keyCtrls);
 
 		help->addSeparator();
-		*/
+
 		QAction *about = new QAction(tr("About Auto&Flight"), this);
 		help->addAction(about);
+
 
 	QWidget::connect(connectDrone, SIGNAL(triggered()), this, SLOT(attemptConnection()));
 	QWidget::connect(flatTrim, SIGNAL(triggered()), this, SLOT(flatTrimActionTriggered()));
@@ -270,13 +295,14 @@ void AFMainWindow::createMenuBar() {
 
 	QWidget::connect(toggleHUD, SIGNAL(triggered(bool)), this, SLOT(toggleHUD(bool)));
 
-	QWidget::connect(about, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
+    QWidget::connect(keyCtrls, SIGNAL(triggered()), this, SLOT(showDefaultKeyboardControls()));
+    QWidget::connect(about, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
 }
 
 QWidget *AFMainWindow::createVerticalToolbar()
 {
 	QVBoxLayout *layout = new QVBoxLayout();
-	layout->setSpacing(5);
+	layout->setSpacing(15);
 
 	QWidget *panel = new QWidget();
 	panel->setLayout(layout);
@@ -288,7 +314,9 @@ QWidget *AFMainWindow::createVerticalToolbar()
     QObject::connect(this, SIGNAL(connectionEstablishedSignal()), c, SLOT(connectionEstablished()));
 	layout->addWidget(c);
 
-    layout->addSpacing(10);
+	Status *s = new Status();
+    QObject::connect(this, SIGNAL(statusUpdateAvailableSignal(int)), s, SLOT(statusUpdateAvailable(int)));
+	layout->addWidget(s);
 
     if(_af->bebop())
     {
@@ -585,6 +613,83 @@ void AFMainWindow::calibrateMagnetometerActionTriggered()
 	{
 		showMessage(tr("Automatic magnetometer calibration not supported").toStdString());
 	}
+}
+
+void AFMainWindow::downloadBebopMedia()
+{
+    static string saveDir = _af->getHomeDirectory() + "AutoFlightSaves/Media/";
+    static bool eraseOnDrone = false;
+
+    if(_af->bebop() == nullptr)
+    {
+        return;
+    }
+
+    if(_af->bebop()->isConnected())
+    {
+        // Dialog
+
+        BebopMediaDownload bmd(saveDir, eraseOnDrone, this);
+        bmd.exec();
+
+        if(bmd.result() != QDialog::Accepted)
+        {
+            return;
+        }
+
+        saveDir = bmd.getSavePath();
+        eraseOnDrone = bmd.eraseOnDrone();
+
+        if(_bebopMediaDownload_busy == nullptr)
+        {
+            _bebopMediaDownload_busy = new QProgressDialog(this);
+            _bebopMediaDownload_busy->setCancelButton(0);
+            _bebopMediaDownload_busy->setWindowFlags(_bebopMediaDownload_busy->windowFlags() & ~Qt::WindowCloseButtonHint);
+            _bebopMediaDownload_busy->setWindowTitle(tr("Downloading media files..."));
+            _bebopMediaDownload_busy->setMinimum(0);
+            _bebopMediaDownload_busy->setMaximum(0);
+            QObject::connect(this, SIGNAL(bebopMediaDownloadFinishedSignal()), _bebopMediaDownload_busy, SLOT(cancel()));
+        }
+
+        // Download media over FTP
+
+        boost::filesystem::create_directories(saveDir);
+
+        boost::thread([this]() {
+            bebopftp::downloadMedia(_af->bebop()->getIP(), saveDir, eraseOnDrone);
+            Q_EMIT bebopMediaDownloadFinishedSignal();
+        });
+
+        // Show busy dialog
+        _bebopMediaDownload_busy->exec();
+    }
+    else
+    {
+        showMessage(tr("Not connected").toStdString());
+    }
+}
+
+void AFMainWindow::showDefaultKeyboardControls()
+{
+    QDialog helpDialog(this);
+    helpDialog.setWindowTitle(tr("Drone Keyboard Controls"));
+
+    QVBoxLayout *l = new QVBoxLayout();
+    l->setAlignment(Qt::AlignTop);
+    helpDialog.setLayout(l);
+
+    QLabel *controls = new QLabel();
+    controls->setPixmap(QPixmap::fromImage(QImage(":/resources/af_controls.png")));
+    l->addWidget(controls);
+
+    QLabel *website = new QLabel(QString("Full documentation at <a href=\"http://electronics.kitchen/docs/autoflight\">electronics.kitchen/docs/autoflight</a>"));
+    website->setOpenExternalLinks(true);
+    website->setStyleSheet("font: 12pt; ");
+    website->setAlignment(Qt::AlignCenter);
+    l->addWidget(website);
+
+    helpDialog.layout()->setSizeConstraint(QLayout::SetFixedSize);
+    helpDialog.exec();
 }
 
 void AFMainWindow::showAboutDialog()
