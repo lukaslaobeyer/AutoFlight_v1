@@ -108,6 +108,11 @@ void MAVLinkProxy::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 
     _sys_status.battery_remaining = (int8_t) (navdata->batterystatus * 100.0f);
 
+    if(navdata->full)
+    {
+        _sys_status.voltage_battery = (navdata->full_navdata.vbat) * 1000;
+    }
+
     _attitude.pitch = navdata->attitude(0);
     _attitude.roll = navdata->attitude(1);
     _attitude.yaw = navdata->attitude(2);
@@ -119,7 +124,7 @@ void MAVLinkProxy::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
         _gps.lat = (int32_t) (navdata->latitude * 1.0E7);
         _gps.lon = (int32_t) (navdata->longitude * 1.0E7);
         _gps.alt = (int32_t) (navdata->gps_altitude * 1000.0);
-        _gps.satellites_visible = navdata->gps_sats;
+        _gps.satellites_visible = (uint8_t) navdata->gps_sats;
         if(navdata->gps_sats < 4)
         {
             _gps.fix_type = 2;
@@ -215,7 +220,7 @@ void MAVLinkProxy::dataReceived(const boost::system::error_code &error, size_t r
     {
         if(mavlink_parse_char(MAVLINK_COMM_0, _received_msg_buf[i], &msg, &status))
         {
-            printf("\nReceived packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
+            printf("Received packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
         }
     }
 

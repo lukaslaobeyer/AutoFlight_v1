@@ -4,7 +4,7 @@
 #define MAVLINK_PORT 14550
 
 #define MAVLINK_HEARTBEAT_INTERVAL 1000
-#define MAVLINK_NAVDATA_INTERVAL 100
+#define MAVLINK_NAVDATA_INTERVAL 25
 
 #include <interface/inavdatalistener.h>
 #include <interface/iconnectionstatuslistener.h>
