@@ -7,6 +7,7 @@
 #include <boost/python.hpp>
 #include <string>
 #include <drone.h>
+#include <drones/fpvdrone.h>
 #include "../../imgprocui/imagevisualizer.h"
 #include "../iscriptsimulationui.h"
 
@@ -18,14 +19,16 @@
 class ImgProc
 {
 	public:
-		ImgProc(std::shared_ptr<Drone> drone = NULL, ImageVisualizer *iv = NULL, bool simulationMode = false, IScriptSimulationUI *simUI = NULL);
+		ImgProc(std::shared_ptr<FPVDrone> drone = NULL, ImageVisualizer *iv = NULL, bool simulationMode = false, IScriptSimulationUI *simUI = NULL);
 
 		PyObject *getLatestFrame();
 		void showFrame(PyObject *frame);
 
 		bool abortFlag = false;
 	private:
-		std::shared_ptr<Drone> d = NULL;
+		bool initNumPy();
+
+		std::shared_ptr<FPVDrone> d = NULL;
 		bool sim = true;
 		IScriptSimulationUI *ssui;
 		ImageVisualizer *_iv = NULL;

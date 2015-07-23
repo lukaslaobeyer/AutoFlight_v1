@@ -193,8 +193,19 @@ void AFMainWindow::videoFrameAvailable(cv::Mat f)
 
 void AFMainWindow::videoFrameAvailable(QImage f)
 {
-	videoPanel->setMaximized(true);
-	videoPanel->setCurrentFrame(f);
+    if(_lastProcessedFrameTime + 1000 < (uint64_t) QDateTime::currentMSecsSinceEpoch())
+    {
+        videoPanel->setMaximized(true);
+        videoPanel->setCurrentFrame(f);
+    }
+}
+
+void AFMainWindow::processedFrameAvailable(QImage f)
+{
+    _lastProcessedFrameTime = (uint64_t) QDateTime::currentMSecsSinceEpoch();
+
+    videoPanel->setMaximized(true);
+    videoPanel->setCurrentFrame(f);
 }
 
 void AFMainWindow::createMenuBar() {
@@ -438,6 +449,7 @@ void AFMainWindow::launchAutoScriptIDE()
 	if(_asWindow == NULL)
 	{
 		_asWindow = new ASMainWindow(_af->asengine(), this);
+        QObject::connect(_asWindow, SIGNAL(processedFrameAvailableSignal(QImage)), this, SLOT(processedFrameAvailable(QImage)));
 	}
 
 	_asWindow->show();

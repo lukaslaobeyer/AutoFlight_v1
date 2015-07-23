@@ -4,7 +4,7 @@
 
 ImageVisualizer::ImageVisualizer(QObject *parent) : QObject(parent)
 {
-	QObject::connect(this, SIGNAL(videoFrameAvailableSignal(QImage)), this, SLOT(videoFrameAvailable(QImage)));
+	//QObject::connect(this, SIGNAL(videoFrameAvailableSignal(QImage)), this, SLOT(videoFrameAvailable(QImage)));
 }
 
 void ImageVisualizer::showImage(cv::Mat &f)
@@ -53,5 +53,6 @@ void ImageVisualizer::videoFrameAvailable(QImage img)
 	else
 	{
 		item.setPixmap(QPixmap::fromImage(img));
+		view.show();
 	}
 }

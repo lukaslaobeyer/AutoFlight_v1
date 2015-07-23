@@ -72,7 +72,7 @@ BOOST_PYTHON_MODULE(autoscriptioredirector)
 			    .def("write", &ASIORedirector::write);
 }
 
-ASEngine::ASEngine(shared_ptr<Drone> drone)
+ASEngine::ASEngine(shared_ptr<FPVDrone> drone)
 {
 	initPython();
 
@@ -87,7 +87,6 @@ void ASEngine::initPython()
 		PyImport_AppendInittab("autoscriptioredirector", &PyInit_autoscriptioredirector);
 		Py_SetProgramName((wchar_t *)"AutoFlight");
 		Py_Initialize();
-		PyEval_InitThreads();
 		PyEval_ReleaseLock();
 	}
 }
@@ -97,7 +96,7 @@ ASEngine::~ASEngine()
 
 }
 
-shared_ptr<Drone> ASEngine::drone()
+shared_ptr<FPVDrone> ASEngine::drone()
 {
 	return _drone;
 }
@@ -202,7 +201,7 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 		boost::python::import("sys").attr("stderr") = redirector;
 		boost::python::import("sys").attr("stdout") = redirector;
 
-		// Import AR.Drone control functions
+		// Import drone control functions
 		py::object autoscript_module((py::handle<>(PyImport_ImportModule("autoscript"))));
 		global_namespace["autoscript"] = autoscript_module;
 
@@ -210,7 +209,6 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 		global_namespace["sensors"] = py::ptr(_sensors);
 		global_namespace["util"] = py::ptr(_util);
 		global_namespace["imgproc"] = py::ptr(_imgproc);
-		//global_namespace["hwext"] = py::ptr(_hwext);
 
 		initialized = true;
 
@@ -294,7 +292,9 @@ void ASEngine::stopRunningScript()
 		_hwext->abortFlag = true;
 	}
 
+	PyGILState_STATE state = PyGILState_Ensure();
 	Py_AddPendingCall(&pyQuit, NULL);
+	PyGILState_Release(state);
 }
 
 ASError ASEngine::getLatestExceptionMessage()

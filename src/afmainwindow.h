@@ -85,12 +85,15 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 
         QProgressDialog *_bebopMediaDownload_busy = nullptr;
 
+        uint64_t _lastProcessedFrameTime = 0;
+
 		//ImageProcessor *_imgProcTest = NULL;
 	private Q_SLOTS:
 		void attemptConnection();
 		void showControlConfigDialog();
 		void showDroneConfigDialog();
 		void videoFrameAvailable(QImage f);
+		void processedFrameAvailable(QImage f);
 		void toggleHUD(bool showHUD);
 		void launchAutoScriptIDE();
 		void launchSessionViewerDialog();

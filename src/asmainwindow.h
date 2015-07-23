@@ -99,6 +99,7 @@ class ASMainWindow : public QMainWindow, public IScriptSimulationUI
 		void simulatedBoolInputSignal(std::string text);
 		void simulatedFloatInputSignal(std::string text, std::string unit);
 		void highlightErrorSignal(int lineNo);
+		void processedFrameAvailableSignal(QImage img);
 };
 
 #endif

@@ -2,7 +2,7 @@
 #include <opencv2/core.hpp>
 #include "CVBoostConverter.hpp"
 
-ImgProc::ImgProc(std::shared_ptr<Drone> drone, ImageVisualizer *iv, bool simulationMode, IScriptSimulationUI *simUI)
+ImgProc::ImgProc(std::shared_ptr<FPVDrone> drone, ImageVisualizer *iv, bool simulationMode, IScriptSimulationUI *simUI)
 {
 	d = drone;
 	sim = simulationMode;
@@ -10,24 +10,27 @@ ImgProc::ImgProc(std::shared_ptr<Drone> drone, ImageVisualizer *iv, bool simulat
 
 	_iv = iv;
 
-	import_array1();
+	initNumPy();
 }
 
 PyObject *ImgProc::getLatestFrame()
 {
 	//TODO: this
-	/*
 	cv::Mat mat = d->getLatestFrame();
 
 	PyObject *ret = bcvt::fromMatToNDArray(mat);
 
 	return ret;
-	*/
-	return NULL;
 }
 
 void ImgProc::showFrame(PyObject *frame)
 {
 	cv::Mat mat = bcvt::fromNDArrayToMat(frame);
 	_iv->showImage(mat);
+}
+
+bool ImgProc::initNumPy()
+{
+    import_array1(false);
+    return true;
 }

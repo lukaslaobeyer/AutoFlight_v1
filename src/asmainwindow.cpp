@@ -44,6 +44,9 @@ ASMainWindow::ASMainWindow(ASEngine *e, QWidget *parent) : QMainWindow(parent)
 	QObject::connect(this, SIGNAL(simulatedBoolInputSignal(std::string)), this, SLOT(setSimulatedBoolInput(std::string)), Qt::BlockingQueuedConnection);
 	QObject::connect(this, SIGNAL(simulatedFloatInputSignal(std::string, std::string)), this, SLOT(setSimulatedFloatInput(std::string, std::string)), Qt::BlockingQueuedConnection);
 
+	///// Signal for processed video frames (to be used by the AutoFlight main window)
+	QObject::connect(_iv, SIGNAL(videoFrameAvailableSignal(QImage)), this, SIGNAL(processedFrameAvailableSignal(QImage)));
+
 	///// Code editor
 
 	QFont editorfont;

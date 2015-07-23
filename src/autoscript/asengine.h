@@ -22,10 +22,10 @@
 class ASEngine
 {
 	public:
-		ASEngine(std::shared_ptr<Drone> drone);
+		ASEngine(std::shared_ptr<FPVDrone> drone);
 		~ASEngine();
 
-		std::shared_ptr<Drone> drone();
+		std::shared_ptr<FPVDrone> drone();
 
 		std::vector<std::string> getAvailableFunctions();
 
@@ -37,7 +37,7 @@ class ASEngine
 	private:
 		ASError getLatestExceptionMessage();
 
-		std::shared_ptr<Drone> _drone;
+		std::shared_ptr<FPVDrone> _drone;
 
 		Sensors *_sensors = NULL;
 		Control *_control = NULL;
