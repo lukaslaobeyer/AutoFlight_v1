@@ -90,17 +90,20 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	grid->addWidget(horizontalToolbar, 1, 0, 1, 1);
 	grid->addWidget(verticalToolbar, 0, 1, 2, 1);
 
-	//_imgProcTest = new ImageProcessor();
+	ImageVisualizer *iv = new ImageVisualizer(); //TODO: this is only a test
+	QObject::connect(iv, SIGNAL(videoFrameAvailableSignal(QImage)), this, SLOT(processedFrameAvailable(QImage))); //TODO: this is only a test
+
+	_imgProcTest = new ImageProcessor(iv); //TODO: this is only a test
 
 	_af->drone()->addNavdataListener(this);
     _af->drone()->addStatusListener(this);
 	if(_af->fpvdrone())
 	{
 		_af->fpvdrone()->addVideoListener(this);
+		_af->fpvdrone()->addVideoListener(_imgProcTest); // TODO: this is only a test
 	}
 	//TODO: Controller input; _af->ardrone()->addControllerInputListener(this);
 	_af->drone()->addConnectionStatusListener(this);
-	//_af->ardrone()->addVideoListener(_imgProcTest);
 
 	_manualcontrol.reset(new ManualControl(_af, this));
 	_manualcontrol->startUpdateLoop();
@@ -174,7 +177,7 @@ void AFMainWindow::connectionLost()
 void AFMainWindow::connectionEstablished()
 {
 	Q_EMIT connectionEstablishedSignal();
-	//_imgProcTest->startProcessing();
+	_imgProcTest->startProcessing(); //TODO: this is only a test
 }
 
 void AFMainWindow::videoFrameAvailable(cv::Mat f)
@@ -585,13 +588,13 @@ void AFMainWindow::closeEvent(QCloseEvent *event)
 	if(_af->fpvdrone())
 	{
 		_af->fpvdrone()->removeVideoListener(this);
+		_af->fpvdrone()->removeVideoListener(_imgProcTest); //TODO: this is only a test
 	}
 	//_af->ardrone()->removeControllerInputListener(this);
 	_af->drone()->removeConnectionStatusListener(this);
-	//_af->ardrone()->removeVideoListener(_imgProcTest);
 
-	//_imgProcTest->stopProcessing();
-	//delete _imgProcTest;
+	_imgProcTest->stopProcessing();
+	delete _imgProcTest;
 
 	_af->saveSession();
 }

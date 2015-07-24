@@ -2,11 +2,14 @@
 #include <iostream>
 #include <vector>
 
+#include <april/TagFamily.h>
+#include <april/TagDetector.h>
+
 using namespace std;
 
-ImageProcessor::ImageProcessor()
+ImageProcessor::ImageProcessor(ImageVisualizer *iv)
 {
-	_iv = new ImageVisualizer;
+	_iv = iv;
 }
 
 void ImageProcessor::startProcessing()
@@ -62,36 +65,26 @@ void ImageProcessor::processLatestFrame()
 	_status = PROCESSING_FRAME;
 	// Just trying out some stuff
 
-	// Reduce noise
-	cv::GaussianBlur(_latestFrame, _latestFrame, cv::Size(3, 3), 0, 0);
+    static TagFamily family("Tag36h9");
+    static TagDetector detector(family);
+    static TagDetectionArray detections;
 
-	// Color threshold
-	cv::Mat latestFrameHSV;
-	cv::cvtColor(_latestFrame, latestFrameHSV, CV_BGR2HSV);
-	cv::Mat redOnly;
-	cv::Mat red0; // Red with hue between 0 and 30
-	cv::Mat red1; // Red with hue between 150 and 180
-	cv::inRange(latestFrameHSV, cv::Scalar(0, 80, 40), cv::Scalar(10, 200, 200), red0);
-	cv::inRange(latestFrameHSV, cv::Scalar(170, 80, 40), cv::Scalar(180, 200, 200), red1);
-	cv::bitwise_or(red0, red1, redOnly);
+    cv::Point2d opticalCenter(0.5*_latestFrame.rows, 0.5*_latestFrame.cols);
+    detector.process(_latestFrame, opticalCenter, detections);
 
-	cv::Mat eroded;
-	cv::erode(redOnly, eroded, cv::Mat(), cv::Point(-1, -1), 20);
-	//cv::morphologyEx(redOnly, opened, cv::MORPH_CLOSE, cv::Mat(), cv::Point(-1, -1), 20);
+    cv::Mat final = family.superimposeDetections(_latestFrame, detections);
 
-	cv::Moments m = cv::moments(eroded, true);
-	cv::Point centroid(m.m10/m.m00, m.m01/m.m00);
+    if(!detections.empty())
+    {
+        int i = 0;
+        for(TagDetection detection : detections)
+        {
+            cv::putText(final, "ID = " + to_string(detection.id), cv::Point2f(5, 20 + 25*i), cv::FONT_HERSHEY_PLAIN, 1.5, cv::Scalar(0,255,255,255));
+            i++;
+        }
 
-	cv::Mat final;
-	cv::cvtColor(eroded, final, CV_GRAY2BGR);
-
-	if(centroid.x > 0 && centroid.y > 0)
-	{
-		cv::circle(final, centroid, 5, cv::Scalar(0, 255, 0), 2);
-	}
-
-	//_iv->showImage(display);
-	_iv->showImage(final);
+        _iv->showImage(final);
+    }
 
 	_status = READY_FOR_NEXT_FRAME;
 }

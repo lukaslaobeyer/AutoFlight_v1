@@ -87,7 +87,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 
         uint64_t _lastProcessedFrameTime = 0;
 
-		//ImageProcessor *_imgProcTest = NULL;
+		ImageProcessor *_imgProcTest = NULL;
 	private Q_SLOTS:
 		void attemptConnection();
 		void showControlConfigDialog();

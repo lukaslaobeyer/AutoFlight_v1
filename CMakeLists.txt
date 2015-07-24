@@ -7,7 +7,7 @@ project(AutoFlight)
 
 # C++11 and warnings
 #set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O2 -s")
-set(CMAKE_CXX_FLAGS "-Wall -std=c++11  -g -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11  -g -O0")
 #                                      ^^^^^^ for debugging only
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -136,6 +136,8 @@ file(GLOB AutoFlight_SRC
     "lib/include/mavlink/common/*.h"
     "lib/include/ftp/*.h"
     "lib/include/ftp/*.cpp"
+    "lib/include/april/*.h"
+    "lib/include/april/*.cpp"
 )
 
 # Add the resources
@@ -158,15 +160,16 @@ ELSE()
 ENDIF()
 add_dependencies(AutoFlight generate_build_number)
 
-target_link_libraries(AutoFlight ${Boost_LIBRARIES})
-target_link_libraries(AutoFlight ${OpenCV_LIBS})
-target_link_libraries(AutoFlight ${FFMPEG_LIBRARIES})
-target_link_libraries(AutoFlight ${PYTHON_LIBRARIES})
 IF(MINGW)
   target_link_libraries(AutoFlight opengl32 ws2_32)
 ELSE()
   target_link_libraries(AutoFlight GL x264)
 ENDIF()
+
+target_link_libraries(AutoFlight ${Boost_LIBRARIES})
+target_link_libraries(AutoFlight ${OpenCV_LIBS})
+target_link_libraries(AutoFlight ${FFMPEG_LIBRARIES})
+target_link_libraries(AutoFlight ${PYTHON_LIBRARIES})
 
 # Link libraries in ../lib
 IF(MINGW)

@@ -14,7 +14,7 @@
 class ImageProcessor : public IVideoListener
 {
 	public:
-		ImageProcessor();
+		ImageProcessor(ImageVisualizer *iv);
 		void startProcessing();
 		void stopProcessing();
 		void videoFrameAvailable(cv::Mat frame);
