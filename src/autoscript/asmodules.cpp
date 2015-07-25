@@ -37,30 +37,30 @@ bool Control::land()
 	return false;
 }
 
-bool Control::move(float phi, float theta, float gaz, float yaw)
+bool Control::move(float pitch, float roll, float gaz, float yaw)
 {
 	ASSERT_ARDRONE_B(d)
 
 	if(sim)
 	{
 		std::stringstream description;
-		description << "Moving with phi = " << phi << "; theta = " << theta << "; gaz = " << gaz << " and yaw = " << yaw << ".";
+		description << "Moving with pitch = " << pitch << "; roll = " << roll << "; gaz = " << gaz << " and yaw = " << yaw << ".";
 
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
 
-	return (drone_setAttitudeRel(d, theta, phi, yaw, gaz) == drone::OK);
+	return (drone_setAttitudeRel(d, pitch, roll, yaw, gaz) == drone::OK);
 	return false;
 }
 
-bool Control::move_distance(float phi, float theta, float gaz, float yaw, float centimeters)
+bool Control::move_distance(float pitch, float roll, float gaz, float yaw, float centimeters)
 {
 	ASSERT_ARDRONE_B(d)
 
 	if(sim)
 	{
 		std::stringstream description;
-		description << "Moving for " << centimeters << "cm with phi = " << phi << "; theta = " << theta << "; gaz = " << gaz << " and yaw = " << yaw << ".";
+		description << "Moving for " << centimeters << "cm with pitch = " << pitch << "; roll = " << roll << "; gaz = " << gaz << " and yaw = " << yaw << ".";
 
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
@@ -80,7 +80,7 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 
 		double altitude_at_beginning = data->altitude;
 
-		bool ok = move(phi, theta, gaz, yaw);
+		bool ok = move(pitch, roll, gaz, yaw);
 		if(!ok)
 		{
 			return false;
@@ -95,7 +95,7 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 
 			boost::this_thread::sleep_for(boost::chrono::milliseconds(CHECK_RATE));
 
-			if(phi == 0 && theta == 0 && gaz != 0) // Precision altitude control mode
+			if(pitch == 0 && roll == 0 && gaz != 0) // Precision altitude control mode
 			{
 
 			}
@@ -112,7 +112,7 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 					completed = true;
 				}
 			}
-			else if(phi == 0 && theta == 0 && gaz == 0)
+			else if(pitch == 0 && roll == 0 && gaz == 0)
 			{
 				break;
 			}
@@ -148,19 +148,19 @@ bool Control::move_distance(float phi, float theta, float gaz, float yaw, float 
 	}
 }
 
-bool Control::move_time(float phi, float theta, float gaz, float yaw, int milliseconds)
+bool Control::move_time(float pitch, float roll, float gaz, float yaw, int milliseconds)
 {
 	ASSERT_ARDRONE_B(d)
 
 	if(sim)
 	{
 		std::stringstream description;
-		description << "Moving for " << milliseconds << "ms with phi = " << phi << "; theta = " << theta << "; gaz = " << gaz << " and yaw = " << yaw << ".";
+		description << "Moving for " << milliseconds << "ms with pitch = " << pitch << "; roll = " << yaw << "; gaz = " << gaz << " and yaw = " << yaw << ".";
 
 		SIMULATE_ACTION_B(sim, description.str(), ssui)
 	}
 
-	bool ok = move(phi, theta, gaz, yaw);
+	bool ok = move(pitch, roll, gaz, yaw);
 	if(!ok)
 	{
 		return false;
@@ -183,62 +183,62 @@ bool Control::move_time(float phi, float theta, float gaz, float yaw, int millis
 
 bool Control::forward(float speed)
 {
-	return move(0, -speed, 0, 0);
+	return move(-speed, 0, 0, 0);
 }
 
 bool Control::forward_time(float speed, int milliseconds)
 {
-	return move_time(0, -speed, 0, 0, milliseconds);
+	return move_time(-speed, 0, 0, 0, milliseconds);
 }
 
 bool Control::forward_distance(float speed, float centimeters)
 {
-	return move_distance(0, -speed, 0, 0, centimeters);
+	return move_distance(-speed, 0, 0, 0, centimeters);
 }
 
 bool Control::backward(float speed)
 {
-	return move(0, speed, 0, 0);
+	return move(speed, 0, 0, 0);
 }
 
 bool Control::backward_time(float speed, int milliseconds)
 {
-	return move_time(0, speed, 0, 0, milliseconds);
+	return move_time(speed, 0, 0, 0, milliseconds);
 }
 
 bool Control::backward_distance(float speed, float centimeters)
 {
-	return move_distance(0, speed, 0, 0, centimeters);
+	return move_distance(speed, 0, 0, 0, centimeters);
 }
 
 bool Control::left(float speed)
 {
-	return move(-speed, 0, 0, 0);
+	return move(0, -speed, 0, 0);
 }
 
 bool Control::left_time(float speed, int milliseconds)
 {
-	return move_time(-speed, 0, 0, 0, milliseconds);
+	return move_time(0, -speed, 0, 0, milliseconds);
 }
 
 bool Control::left_distance(float speed, float centimeters)
 {
-	return move_distance(-speed, 0, 0, 0, centimeters);
+	return move_distance(0, -speed, 0, 0, centimeters);
 }
 
 bool Control::right(float speed)
 {
-	return move(speed, 0, 0, 0);
+	return move(0, speed, 0, 0);
 }
 
 bool Control::right_time(float speed, int milliseconds)
 {
-	return move_time(speed, 0, 0, 0, milliseconds);
+	return move_time(0, speed, 0, 0, milliseconds);
 }
 
 bool Control::right_distance(float speed, float centimeters)
 {
-	return move_distance(speed, 0, 0, 0, centimeters);
+	return move_distance(0, speed, 0, 0, centimeters);
 }
 
 bool Control::up(float speed)

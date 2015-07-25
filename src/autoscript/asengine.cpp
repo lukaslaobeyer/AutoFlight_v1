@@ -61,9 +61,8 @@ BOOST_PYTHON_MODULE(autoscript)
 
 	py::class_<ImgProc>("ImgProc")
 				.def("getLatestFrame", &ImgProc::getLatestFrame)
+                .def("getFrameAge", &ImgProc::getFrameAge)
 				.def("showFrame", &ImgProc::showFrame);
-
-	//bpy::class_<HWExt>("HWExt");
 }
 
 BOOST_PYTHON_MODULE(autoscriptioredirector)
@@ -106,9 +105,9 @@ vector<string> ASEngine::getAvailableFunctions()
 	vector<string> funcs = {
 			"control.takeOff()",
 			"control.land()",
-			"control.move(phi, theta, gaz, yaw)",
-			"control.move_time(phi, theta, gaz, yaw, milliseconds)",
-			"control.move_distance(phi, theta, gaz, yaw, centimeters)",
+			"control.move(pitch, roll, gaz, yaw)",
+			"control.move_time(pitch, roll, gaz, yaw, milliseconds)",
+			"control.move_distance(pitch, roll, gaz, yaw, centimeters)",
 			"control.forward(speed)",
 			"control.forward_time(speed, milliseconds)",
 			"control.forward_distance(speed, centimeters)",
@@ -149,6 +148,7 @@ vector<string> ASEngine::getAvailableFunctions()
 			"util.savePicture(path)",
 
 			"imgproc.getLatestFrame()",
+            "imgproc.getFrameAge()",
 			"imgproc.showFrame(frame)"
 	};
 
@@ -187,14 +187,9 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 		py::object main_module = py::import("__main__");
 		py::object main_namespace = main_module.attr("__dict__");
 
-		py::dict global_namespace;
-		py::dict local_namespace;
-
-		global_namespace["__builtins__"] = main_namespace["__builtins__"];
-
 		// Set up the standard output redirector
 		py::object redirector_module((py::handle<>(PyImport_ImportModule("autoscriptioredirector"))));
-		global_namespace["autoscriptioredirector"] = redirector_module;
+        main_namespace["autoscriptioredirector"] = redirector_module;
 
 		ASIORedirector redirector;
 		redirector.addOutputListener(outputCallback);
@@ -203,16 +198,16 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 
 		// Import drone control functions
 		py::object autoscript_module((py::handle<>(PyImport_ImportModule("autoscript"))));
-		global_namespace["autoscript"] = autoscript_module;
+        main_namespace["autoscript"] = autoscript_module;
 
-		global_namespace["control"] = py::ptr(_control);
-		global_namespace["sensors"] = py::ptr(_sensors);
-		global_namespace["util"] = py::ptr(_util);
-		global_namespace["imgproc"] = py::ptr(_imgproc);
+        main_namespace["control"] = py::ptr(_control);
+        main_namespace["sensors"] = py::ptr(_sensors);
+        main_namespace["util"] = py::ptr(_util);
+        main_namespace["imgproc"] = py::ptr(_imgproc);
 
 		initialized = true;
 
-		py::exec(py::str(script), global_namespace, local_namespace);
+		py::exec(py::str(script), main_namespace);
 
 		drone_hover(_drone);
 

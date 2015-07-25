@@ -23,6 +23,11 @@ PyObject *ImgProc::getLatestFrame()
 	return ret;
 }
 
+unsigned long ImgProc::getFrameAge()
+{
+	return d->getFrameAge();
+}
+
 void ImgProc::showFrame(PyObject *frame)
 {
 	cv::Mat mat = bcvt::fromNDArrayToMat(frame);

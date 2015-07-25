@@ -100,7 +100,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	if(_af->fpvdrone())
 	{
 		_af->fpvdrone()->addVideoListener(this);
-		_af->fpvdrone()->addVideoListener(_imgProcTest); // TODO: this is only a test
+		//_af->fpvdrone()->addVideoListener(_imgProcTest); // TODO: this is only a test
 	}
 	//TODO: Controller input; _af->ardrone()->addControllerInputListener(this);
 	_af->drone()->addConnectionStatusListener(this);
@@ -177,7 +177,7 @@ void AFMainWindow::connectionLost()
 void AFMainWindow::connectionEstablished()
 {
 	Q_EMIT connectionEstablishedSignal();
-	_imgProcTest->startProcessing(); //TODO: this is only a test
+	//_imgProcTest->startProcessing(); //TODO: this is only a test
 }
 
 void AFMainWindow::videoFrameAvailable(cv::Mat f)
@@ -588,7 +588,7 @@ void AFMainWindow::closeEvent(QCloseEvent *event)
 	if(_af->fpvdrone())
 	{
 		_af->fpvdrone()->removeVideoListener(this);
-		_af->fpvdrone()->removeVideoListener(_imgProcTest); //TODO: this is only a test
+		//_af->fpvdrone()->removeVideoListener(_imgProcTest); //TODO: this is only a test
 	}
 	//_af->ardrone()->removeControllerInputListener(this);
 	_af->drone()->removeConnectionStatusListener(this);
