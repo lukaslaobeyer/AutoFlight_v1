@@ -62,7 +62,12 @@ BOOST_PYTHON_MODULE(autoscript)
 	py::class_<ImgProc>("ImgProc")
 				.def("getLatestFrame", &ImgProc::getLatestFrame)
                 .def("getFrameAge", &ImgProc::getFrameAge)
-				.def("showFrame", &ImgProc::showFrame);
+				.def("showFrame", &ImgProc::showFrame)
+                .def("startTagDetector", &ImgProc::startTagDetector)
+                .def("stopTagDetector", &ImgProc::stopTagDetector)
+                .def("setTagFamily", &ImgProc::setTagFamily)
+                .def("setTagROI", &ImgProc::setTagROI)
+                .def("getTagDetections", &ImgProc::getTagDetections);
 }
 
 BOOST_PYTHON_MODULE(autoscriptioredirector)
@@ -149,7 +154,12 @@ vector<string> ASEngine::getAvailableFunctions()
 
 			"imgproc.getLatestFrame()",
             "imgproc.getFrameAge()",
-			"imgproc.showFrame(frame)"
+			"imgproc.showFrame(frame)",
+            "imgproc.startTagDetector()",
+            "imgproc.stopTagDetector()",
+			"imgproc.setTagFamily(family)",
+            "imgproc.setTagROI(x, y, width, height)",
+            "imgproc.getTagDetections()"
 	};
 
 	return funcs;
@@ -181,30 +191,30 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 	bool initialized = false;
 	bool error = false;
 
+    // Initialize namespaces and modules
+    py::object main_module = py::import("__main__");
+    py::object main_namespace = main_module.attr("__dict__");
+
+    // Set up the standard output redirector
+    py::object redirector_module((py::handle<>(PyImport_ImportModule("autoscriptioredirector"))));
+    main_namespace["autoscriptioredirector"] = redirector_module;
+
+    ASIORedirector redirector;
+    redirector.addOutputListener(outputCallback);
+    boost::python::import("sys").attr("stderr") = redirector;
+    boost::python::import("sys").attr("stdout") = redirector;
+
+    // Import drone control functions
+    py::object autoscript_module((py::handle<>(PyImport_ImportModule("autoscript"))));
+    main_namespace["autoscript"] = autoscript_module;
+
+    main_namespace["control"] = py::ptr(_control);
+    main_namespace["sensors"] = py::ptr(_sensors);
+    main_namespace["util"] = py::ptr(_util);
+    main_namespace["imgproc"] = py::ptr(_imgproc);
+
 	try
-	{
-		// Initialize namespaces and modules
-		py::object main_module = py::import("__main__");
-		py::object main_namespace = main_module.attr("__dict__");
-
-		// Set up the standard output redirector
-		py::object redirector_module((py::handle<>(PyImport_ImportModule("autoscriptioredirector"))));
-        main_namespace["autoscriptioredirector"] = redirector_module;
-
-		ASIORedirector redirector;
-		redirector.addOutputListener(outputCallback);
-		boost::python::import("sys").attr("stderr") = redirector;
-		boost::python::import("sys").attr("stdout") = redirector;
-
-		// Import drone control functions
-		py::object autoscript_module((py::handle<>(PyImport_ImportModule("autoscript"))));
-        main_namespace["autoscript"] = autoscript_module;
-
-        main_namespace["control"] = py::ptr(_control);
-        main_namespace["sensors"] = py::ptr(_sensors);
-        main_namespace["util"] = py::ptr(_util);
-        main_namespace["imgproc"] = py::ptr(_imgproc);
-
+    {
 		initialized = true;
 
 		py::exec(py::str(script), main_namespace);
@@ -237,6 +247,8 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 
 		error = true;
 	}
+
+    _imgproc->stopTagDetector();
 
 	delete _control;
 	delete _sensors;

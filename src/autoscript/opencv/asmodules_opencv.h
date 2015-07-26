@@ -8,8 +8,15 @@
 #include <string>
 #include <drone.h>
 #include <drones/fpvdrone.h>
+#include <memory>
+#include <mutex>
+#include <boost/thread.hpp>
+#include <april/TagFamily.h>
+#include <april/TagDetector.h>
 #include "../../imgprocui/imagevisualizer.h"
 #include "../iscriptsimulationui.h"
+
+#define TAG_PROCESS_INTERVAL 25
 
 class ImgProc
 {
@@ -20,9 +27,25 @@ class ImgProc
 		unsigned long getFrameAge();
 		void showFrame(PyObject *frame);
 
+        void startTagDetector();
+        void stopTagDetector();
+		void setTagFamily(std::string family);
+        void setTagROI(int x, int y, int width, int height);
+        boost::python::list getTagDetections();
+
 		bool abortFlag = false;
 	private:
 		bool initNumPy();
+
+        void processTags();
+
+        std::shared_ptr<boost::thread> _worker;
+        TagDetectionArray _detections;
+        bool _worker_running = false;
+        std::shared_ptr<TagFamily> _tag_family;
+        std::shared_ptr<TagDetector> _detector;
+        std::shared_ptr<std::mutex> _detector_mutex;
+        cv::Rect _roi_rect;
 
 		std::shared_ptr<FPVDrone> d = NULL;
 		bool sim = true;
