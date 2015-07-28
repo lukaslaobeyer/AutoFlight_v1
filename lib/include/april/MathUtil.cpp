@@ -21,7 +21,7 @@ at::real MathUtil::mod2pi_pos(at::real vin) {
 
   at::real q = vin * twopi_inv + at::real(0.5);
   int qi = (int) q;
-    
+
   return vin - qi*twopi;
 
 }
@@ -29,7 +29,7 @@ at::real MathUtil::mod2pi_pos(at::real vin) {
 at::real MathUtil::mod2pi(at::real vin) {
 
   at::real v;
-    
+
   if (vin < 0) {
     v = -mod2pi_pos(-vin);
   } else {
@@ -39,7 +39,7 @@ at::real MathUtil::mod2pi(at::real vin) {
   // Validation test:
   //	if (v < -Math.PI || v > Math.PI)
   //		System.out.printf("%10.3f -> %10.3f\n", vin, v);
-    
+
   return v;
 }
 
@@ -155,7 +155,7 @@ at::real MathUtil::mod2pi(at::real ref, at::real v) {
 at::real MathUtil::atan2(at::real y, at::real x) {
 
   at::real atn = atan(y/x);
-  
+
   if (y>=0) {
     if (x>=0) {
       return atn;
@@ -176,7 +176,7 @@ at::real MathUtil::atan(at::real x) {
 
   if (fabs(x) <= 1) {
     return atan_mag1(x);
-  } 
+  }
   if (x < 0) {
     return -M_PI/2-atan_mag1(1/x);
   } else {
@@ -190,20 +190,20 @@ at::real MathUtil::atan_mag1(at::real x) {
 
   // accuracy = 0.26814 degrees
   //	return x/(1+0.28087207802773*x*x);
-  
+
   if (true) {
-    
+
     static const at::real p0 = -0.000158023363661;
     static const at::real p1 = 1.003839939589617;
     static const at::real p2 = -0.016224975245612;
     static const at::real p3 = -0.343317496147292;
     static const at::real p4 = 0.141501628812858;
-    
+
     at::real a = fabs(x);
     at::real a2 = a*a;
-    
+
     at::real y = p0 + p1*a + p2*a2 + p3*(a2*a) + p4*(a2*a2);
-    
+
     if (x < 0) {
       return -y;
     }
@@ -211,13 +211,13 @@ at::real MathUtil::atan_mag1(at::real x) {
 
   } else {
     at::real xx = x*x;
-    
+
     // accuracy = 0.10550 degrees (according to matlab)
-    return (at::real(0.00182789418543) + 
-            at::real(0.97687229491851)*x + 
+    return (at::real(0.00182789418543) +
+            at::real(0.97687229491851)*x +
             at::real(0.00087659977713)*xx)/
-      (at::real(0.99499024627366) + 
-       at::real(0.00228262896304)*x + 
+      (at::real(0.99499024627366) +
+       at::real(0.00228262896304)*x +
        at::real(0.25288677429562)*xx);
   }
 }
@@ -399,4 +399,3 @@ at::real MathUtil::atan_mag1(at::real x) {
 //         A.set(2,1, det*(-a*h+b*g));
 //         A.set(2,2, det*(a*e-b*d));
 //     }
-

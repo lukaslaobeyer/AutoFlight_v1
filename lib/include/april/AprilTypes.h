@@ -13,6 +13,10 @@
 #include <stdint.h>
 #include <float.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 // Namespace to hold data type definitions for apriltags library.
 namespace at {
 
@@ -24,7 +28,7 @@ namespace at {
   typedef float real;
   enum { REAL_IMAGE_TYPE = CV_32F };
 #define AT_REAL_MAX FLT_MAX
-#define AT_EPSILON  0.0000001;  
+#define AT_EPSILON  0.0000001;
 
 #else
 
