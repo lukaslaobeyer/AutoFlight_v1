@@ -38,7 +38,7 @@ public:
   static at::real atan2(at::real y, at::real x);
 
   static at::real atan(at::real x);
-  
+
   static at::real atan_mag1(at::real x);
 
 };
