@@ -9,6 +9,8 @@
 #include <functional>
 #include <limits>
 
+#include <dronehelper.h>
+
 #define PREF_WIDTH 600
 #define PREF_HEIGHT 500
 
@@ -520,8 +522,7 @@ void ASMainWindow::runScript(bool simulate)
 
 		if(landOnError)
 		{
-			//TODO: this
-			//_ase->ardrone()->drone_land();
+			drone_land(_ase->drone());
 		}
 	}
 	else

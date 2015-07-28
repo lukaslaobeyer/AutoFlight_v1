@@ -19,7 +19,6 @@ ImgProc::ImgProc(std::shared_ptr<FPVDrone> drone, ImageVisualizer *iv, bool simu
 
 PyObject *ImgProc::getLatestFrame()
 {
-	//TODO: this
 	cv::Mat mat = d->getLatestFrame();
 
 	PyObject *ret = bcvt::fromMatToNDArray(mat);

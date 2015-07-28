@@ -90,10 +90,10 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	grid->addWidget(horizontalToolbar, 1, 0, 1, 1);
 	grid->addWidget(verticalToolbar, 0, 1, 2, 1);
 
-	ImageVisualizer *iv = new ImageVisualizer(); //TODO: this is only a test
-	QObject::connect(iv, SIGNAL(videoFrameAvailableSignal(QImage)), this, SLOT(processedFrameAvailable(QImage))); //TODO: this is only a test
+	ImageVisualizer *iv = new ImageVisualizer(); // TODO: this is only a test
+	QObject::connect(iv, SIGNAL(videoFrameAvailableSignal(QImage)), this, SLOT(processedFrameAvailable(QImage))); // TODO: this is only a test
 
-	_imgProcTest = new ImageProcessor(iv); //TODO: this is only a test
+	_imgProcTest = new ImageProcessor(iv); // TODO: this is only a test
 
 	_af->drone()->addNavdataListener(this);
     _af->drone()->addStatusListener(this);
@@ -102,7 +102,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 		_af->fpvdrone()->addVideoListener(this);
 		//_af->fpvdrone()->addVideoListener(_imgProcTest); // TODO: this is only a test
 	}
-	//TODO: Controller input; _af->ardrone()->addControllerInputListener(this);
+	// TODO: Controller input; _af->ardrone()->addControllerInputListener(this);
 	_af->drone()->addConnectionStatusListener(this);
 
 	_manualcontrol.reset(new ManualControl(_af, this));
@@ -116,7 +116,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 
 	installEventFilter(this);
 
-	//TODO: Fix memory leaks
+	// TODO: Fix memory leaks
 	ControllerConfiguration *cc = ControllerConfigurationFileIO::loadControllerConfiguration();
 	if(cc != nullptr)
 	{
@@ -177,7 +177,7 @@ void AFMainWindow::connectionLost()
 void AFMainWindow::connectionEstablished()
 {
 	Q_EMIT connectionEstablishedSignal();
-	//_imgProcTest->startProcessing(); //TODO: this is only a test
+	//_imgProcTest->startProcessing(); // TODO: this is only a test
 }
 
 void AFMainWindow::videoFrameAvailable(cv::Mat f)
@@ -264,11 +264,6 @@ void AFMainWindow::createMenuBar() {
 
 		QAction *configEditor = new QAction(tr("Configuration Editor"), this);
 		tools->addAction(configEditor);
-
-		tools->addSeparator();
-
-		QAction *gpsViewer = new QAction(tr("GPS Viewer"), this);
-		tools->addAction(gpsViewer);
 		*/
 	QMenu *view = new QMenu(tr("&View"));
 	menuBar()->addMenu(view);
@@ -277,7 +272,7 @@ void AFMainWindow::createMenuBar() {
 		toggleHUD->setShortcut(QKeySequence::fromString("F5"));
 		view->addAction(toggleHUD);
 
-		/* TODO: This
+		/* TODO: Fullscreen
 		view->addSeparator();
 
 		QAction *toggleFullscreen = new QAction(tr("Fullscreen"), this);
