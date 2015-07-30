@@ -6,9 +6,12 @@ cmake_minimum_required(VERSION 2.8.9)
 project(AutoFlight)
 
 # C++11 and warnings
-#set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O2 -s")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11  -g -O0")
-#                                      ^^^^^^ for debugging only
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g -O0")
+    #                                      ^^^^^^ for debugging only
+ELSE()
+    set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O2 -s")
+ENDIF()
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Run moc automatically when needed
