@@ -5,12 +5,16 @@ cmake_minimum_required(VERSION 2.8.9)
 
 project(AutoFlight)
 
+IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Debug)
+ENDIF()
+
 # C++11 and warnings
-IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+IF(CMAKE_BUILD_TYPE STREQUAL Debug)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g -O0")
     #                                      ^^^^^^ for debugging only
 ELSE()
-    set(CMAKE_CXX_FLAGS "-Wall -std=c++11 -O2 -s")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O2 -s")
 ENDIF()
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
