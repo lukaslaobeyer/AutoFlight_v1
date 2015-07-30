@@ -11,7 +11,7 @@ MAVLinkProxy::MAVLinkProxy() : _socket(_io_service, boost::asio::ip::udp::v4()),
     _mavlink_system.compid = MAV_COMP_ID_SYSTEM_CONTROL;
 
     boost::asio::ip::udp::resolver resolver(_io_service);
-    boost::asio::ip::udp::resolver::query query("0.0.0.0", std::to_string(MAVLINK_PORT));
+    boost::asio::ip::udp::resolver::query query("127.0.0.1", std::to_string(MAVLINK_PORT));
     _endpoint = *resolver.resolve(query);
 
     uint32_t sensors = MAV_SYS_STATUS_SENSOR_3D_GYRO
