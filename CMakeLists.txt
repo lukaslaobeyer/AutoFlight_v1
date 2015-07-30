@@ -54,7 +54,7 @@ include_directories(${Boost_INCLUDE_DIR})
 
 # Find OpenCV
 IF(MINGW)
-  set(OpenCV_DIR "C:/opencv/share/OpenCV")
+  set(OpenCV_DIR "C:/opencv")
 ELSE()
   set(OpenCV_DIR "/opt/opencv/share/OpenCV")
 ENDIF()
@@ -63,7 +63,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Find Eigen
 IF(MINGW)
-  include_directories("C:/eigen3/include")
+  include_directories("C:/eigen3/include/eigen3")
 ELSE()
   find_package(Eigen3 REQUIRED)
   include_directories(${EIGEN3_INCLUDE_DIR})

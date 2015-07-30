@@ -33,7 +33,7 @@ class ASEngine
 		void stopRunningScript();
 		std::string getPythonVersion();
 
-		static void initPython();
+		void initPython();
 	private:
 		ASError getLatestExceptionMessage();
 

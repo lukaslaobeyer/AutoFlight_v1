@@ -87,8 +87,6 @@ int main(int argc, char *argv[])
 	Gamepad_init();
 	Gamepad_detectDevices();
 
-	ASEngine::initPython();
-
 	AutoFlight af(drone_type, ip_address);
 
 	// TODO: Allow setting stream resolution

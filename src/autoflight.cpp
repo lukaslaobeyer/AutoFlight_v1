@@ -31,7 +31,7 @@ AutoFlight::AutoFlight(drone_type drone_type, string ip)
 	}
 
 	_ase = new ASEngine(fpvdrone());
-
+	_ase->initPython();
 
 	//TODO: Saves; _drone->setSaveDirectory(getHomeDirectory().append("AutoFlightSaves/"));
 

@@ -78,8 +78,6 @@ BOOST_PYTHON_MODULE(autoscriptioredirector)
 
 ASEngine::ASEngine(shared_ptr<FPVDrone> drone)
 {
-	initPython();
-
 	_drone = drone;
 }
 
@@ -91,7 +89,8 @@ void ASEngine::initPython()
 		PyImport_AppendInittab("autoscriptioredirector", &PyInit_autoscriptioredirector);
 		Py_SetProgramName((wchar_t *)"AutoFlight");
 		Py_Initialize();
-		PyEval_ReleaseLock();
+        PyEval_InitThreads();
+        PyEval_SaveThread();
 	}
 }
 
@@ -180,7 +179,9 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 		return false;
 	}
 
-	PyGILState_STATE state = PyGILState_Ensure();
+    PyGILState_STATE state = PyGILState_Ensure();
+
+    PyEval_ReInitThreads();
 
 	_control = new Control(_drone, simulate, ssui);
 	_sensors = new Sensors(_drone, simulate, ssui);
