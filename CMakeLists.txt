@@ -14,6 +14,8 @@ IF(CMAKE_BUILD_TYPE STREQUAL Debug)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g -O0")
     #                                      ^^^^^^ for debugging only
 ELSE()
+    set(Boost_USE_DEBUG_RUNTIME OFF)
+    set(Boost_USE_DEBUG_PYTHON OFF)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -O2 -s")
 ENDIF()
 # Find includes in corresponding build directories
