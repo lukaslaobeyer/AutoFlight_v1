@@ -5,11 +5,16 @@ cmake_minimum_required(VERSION 2.8.9)
 
 project(AutoFlight)
 
+# Update build version number
+IF(BUILD_NUMBER)
+    add_definitions(-DAUTOFLIGHT_BUILD="${BUILD_NUMBER}")
+ENDIF()
+
+# Build configurations
 IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 
-# C++11 and warnings
 IF(CMAKE_BUILD_TYPE STREQUAL Debug)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -g -O0")
     #                                      ^^^^^^ for debugging only
@@ -154,20 +159,6 @@ qt5_add_resources(AutoFlight_RCCS "${PROJECT_SOURCE_DIR}/src/resources.qrc")
 
 # Create the AutoFlight executable
 add_executable(AutoFlight ${AutoFlight_SRC} ${AutoFlight_RCCS})
-
-# Update BUILD_NUMBER in afconstants.h header
-IF(MINGW)
-	add_custom_target(
-	  generate_build_number
-	  COMMAND cd ${PROJECT_SOURCE_DIR} && python "${PROJECT_SOURCE_DIR}/cmake/update_build_number.py"
-	)
-ELSE()
-	add_custom_target(
-	  generate_build_number
-	  COMMAND cd ${PROJECT_SOURCE_DIR} && python3 "${PROJECT_SOURCE_DIR}/cmake/update_build_number.py"
-	)
-ENDIF()
-add_dependencies(AutoFlight generate_build_number)
 
 IF(MINGW)
   target_link_libraries(AutoFlight opengl32 ws2_32)

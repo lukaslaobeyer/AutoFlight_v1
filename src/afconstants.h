@@ -3,10 +3,14 @@
 
 #include <string>
 
+#ifndef AUTOFLIGHT_BUILD
+#define AUTOFLIGHT_BUILD "unknown"
+#endif
+
 namespace autoflight
 {
 	const std::string SOFTWARE_VERSION = "Beta 1.0";
-	const std::string BUILD_NUMBER     = "91241a1";
+	const std::string BUILD_NUMBER     = AUTOFLIGHT_BUILD;
 }
 
 namespace error
