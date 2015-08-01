@@ -1,4 +1,4 @@
-# Using AutoFlight on Ubuntu
+# AutoFlight for Ubuntu/Linux
 
 AutoFlight has been compiled and tested on Ubuntu 14.04 LTS, but should work on newer versions and Ubuntu/Debian derivatives.
 
@@ -15,3 +15,7 @@ sudo apt-get install python3 python3-numpy libx264-142 qtbase5 libqt5webkit5 lib
 ## Running AutoFlight
 
 To run AutoFlight, just execute the ``AutoFlight-ARDrone2.sh`` or ``AutoFlight-Bebop.sh`` script, depending on the drone you want to use.
+
+## Getting started
+
+You should visit [electronics.kitchen/gettingstarted](http://electronics.kitchen/gettingstarted) for important information before using AutoFlight.
