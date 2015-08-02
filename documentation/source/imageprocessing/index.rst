@@ -12,4 +12,6 @@ Contents:
 .. toctree::
    :maxdepth: 3
 
-   intro
+
+
+Nothing here yet! Coming soon! Meanwhile you can check out the excellent OpenCV-Python tutorials at http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_tutorials.html.

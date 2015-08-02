@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
 	/*
 	if(stream_res == "720P")
 	{
-		af.ardrone()->setDefaultLiveStreamCodec(ardrone::config::codec::H264_720P);
-		std::cout << "AR.Drone live video stream resolution manually set to " << stream_res << std::endl;
+		af.ardrone2()->setDefaultLiveStreamCodec(ardrone2::config::codec::H264_720P);
+		std::cout << "AR.Drone 2.0 live video stream resolution manually set to " << stream_res << std::endl;
 	}
 	*/
 

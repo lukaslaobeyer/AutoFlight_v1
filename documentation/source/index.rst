@@ -18,6 +18,7 @@ Documentation Contents
    gettingstarted
    Automatic flight with AutoScript <autoscript/index>
    Image processing with OpenCV <imageprocessing/index>
+   buildingfromsource
 
 
 
@@ -27,4 +28,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
