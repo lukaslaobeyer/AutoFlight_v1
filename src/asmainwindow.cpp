@@ -649,7 +649,7 @@ void ASMainWindow::showDocs()
 
 void ASMainWindow::showDocForFunc(string func)
 {
-	QUrl functionDoc = QUrl::fromLocalFile(QString::fromStdString(AutoFlight::getProgramDirectory()).append("docs/AutoScript/functions.html"));
+	QUrl functionDoc = QUrl::fromLocalFile(QString::fromStdString(AutoFlight::getProgramDirectory()).append("docs/autoscript/functions.html"));
 	functionDoc.setFragment(QString::fromStdString(func));
 
 	_docs->load(functionDoc);

@@ -17,8 +17,9 @@ General needed packages
     sudo apt-get install -y build-essential autoconf automake pkg-config
     sudo apt-get install -y gcc-arm-linux-gnueabi
     sudo apt-get install -y cmake git
-    sudo apt-get install -y python3 python3-dev python3-numpy
+    sudo apt-get install -y python3 python3-pip python3-dev python3-numpy
     sudo apt-get install -y libboost1.55-all-dev
+    sudo pip3 install Sphinx
 
 FFmpeg
 ------
