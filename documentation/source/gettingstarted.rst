@@ -108,7 +108,7 @@ Photos and recorded videos are saved on the Bebop's memory. To download them, go
 Drone configuration
 -------------------
 
-Go into the :menuselection:`AR.Drone --> Flight Settings` menu to change the on-board flight parameters of the drone (max. roll/pitch angles, max. height, etc.).
+Go into the :menuselection:`Drone --> Flight Settings` menu to change the on-board flight parameters of the drone (max. roll/pitch angles, max. height, etc.).
 
 MAVLink?
 --------

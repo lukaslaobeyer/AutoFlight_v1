@@ -281,7 +281,8 @@ void ConfigureControls::setAxis()
 		for(unsigned int j = 0; j < Gamepad_deviceAtIndex(_deviceID)->numAxes; j++)
 		{
 			Gamepad_processEvents();
-			if(Gamepad_deviceAtIndex(_deviceID)->axisStates[j] >= 0.5f || Gamepad_deviceAtIndex(_deviceID)->axisStates[j] <= -0.5f)
+			float value = Gamepad_deviceAtIndex(_deviceID)->axisStates[j];
+			if((value >= 0.25f && value <= 0.75f) || (value <= -0.25f && value >= -0.75f))
 			{
 				selectedAxisID = j;
 				break;
