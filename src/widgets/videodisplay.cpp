@@ -1,7 +1,8 @@
 #include "videodisplay.h"
 #include <cmath>
+#include <drones/bebop/types.h>
 
-VideoDisplay::VideoDisplay(QWidget *parent) : QGLWidget(parent)
+VideoDisplay::VideoDisplay(QWidget *parent, bool bebop) : QGLWidget(parent), _bebop(bebop)
 {
 
 }
@@ -21,7 +22,27 @@ void VideoDisplay::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 
 	altitude = nd->altitude * 100.0f;
 	charge = nd->batterystatus * 100.0f;
+    link = nd->linkquality * 100.0f;
 	speed = sqrt(nd->linearvelocity(0) * nd->linearvelocity(0) + nd->linearvelocity(1) * nd->linearvelocity(1));
+
+    if(_bebop)
+    {
+        std::shared_ptr<const bebop::navdata> bebop_nd = std::static_pointer_cast<const bebop::navdata>(nd);
+        _gps_lock = bebop_nd->gps_fix;
+        _gps_sats = bebop_nd->gps_sats;
+    }
+}
+
+void VideoDisplay::statusUpdateAvailable(int status)
+{
+    if(status == drone::status::ARMED)
+    {
+        _armed = true;
+    }
+    else if(status == drone::status::DISARMED)
+    {
+        _armed = false;
+    }
 }
 
 void VideoDisplay::controllerInputAvailable(std::shared_ptr<const ControllerInput> in)
@@ -130,6 +151,39 @@ void VideoDisplay::paintEvent(QPaintEvent *)
     	p.setPen(normalPen);
 
 		int border = 20;
+
+        // Draw the armed/disarmed indicator
+        QString armed_str(tr("DISARMED"));
+        if(_armed)
+        {
+            p.setFont(QFont("Sans Serif", 18, QFont::Bold));
+            armed_str = tr("ARMED");
+        }
+        else
+        {
+            p.setFont(QFont("Sans Serif", 18));
+        }
+        p.drawText(border, border + 20, armed_str);
+        p.setFont(QFont("Sans Serif", 13));
+
+        if(_bebop)
+        {
+            // Draw the GPS lock indicator
+            QString gps_str(tr("No GPS lock"));
+            if(_gps_lock)
+            {
+                p.setFont(QFont("Sans Serif", 16));
+                gps_str = tr("GPS locked (") + QString::number(_gps_sats) + tr(" sattelites)");
+            }
+            else
+            {
+                p.setPen(QColor::fromRgb(255, 166, 0));
+                p.setFont(QFont("Sans Serif", 16));
+            }
+            p.drawText(border, border + 50, gps_str);
+            p.setFont(QFont("Sans Serif", 13));
+            p.setPen(QColor::fromRgb(0, 255, 0));
+        }
 
 		// Draws the CENTER thing
 
@@ -261,6 +315,27 @@ void VideoDisplay::paintEvent(QPaintEvent *)
 		p.drawLine(screenwidth - border - altimeter_width, screenheight/2 - 5, screenwidth - border - altimeter_width + 15, screenheight / 2);
 		p.drawLine(screenwidth - border - altimeter_width, screenheight/2 + 5, screenwidth - border - altimeter_width + 15, screenheight / 2);
 		p.setPen(normalPen);
+
+		// Draw the signal strength indicator
+
+        int link_width = 125;
+        int link_offset = 50;
+
+        if(link < 35)
+        {
+            p.setPen(QColor::fromRgb(255, 166, 0));
+            if(link < 20)
+            {
+                p.setPen(QColor::fromRgb(255, 0, 0));
+            }
+        }
+
+        p.setFont(QFont("Sans Serif", 11));
+        p.drawRect(border, screenheight-border-20-link_offset, link_width, 20);
+        p.fillRect(border, screenheight-border-20-link_offset, (int)(link_width*((float) (link/100.0f))), 20, normalBrush);
+        p.drawText(border, screenheight-border-25-link_offset, QString::number(link).append("% signal strength"));
+
+        p.setPen(normalPen);
 
 		// Draw the BATTERY indicator
 

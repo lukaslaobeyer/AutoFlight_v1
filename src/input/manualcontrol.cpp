@@ -308,8 +308,6 @@ void ManualControl::processControllerInput()
 
 	if(_controllerconfig != nullptr)
 	{
-		//*in = {0, 0, 0, 0, false, false, false, false, false, false, false, false};
-
 		Gamepad_device *device = Gamepad_deviceAtIndex((unsigned int) _controllerconfig->deviceID);
 		Gamepad_processEvents();
 		bool slow = false;
@@ -335,7 +333,6 @@ void ManualControl::processControllerInput()
 			if(device->buttonStates[_controllerconfig->takeoff])
 			{
 				perform_takeoff();
-				//in->takeOff = true;
 				cyclesToWait[0] = N_CYCLES;
 			}
 		}
@@ -344,7 +341,6 @@ void ManualControl::processControllerInput()
 			if(device->buttonStates[_controllerconfig->land])
 			{
 				perform_landing();
-				//in->land = true;
 				cyclesToWait[1] = N_CYCLES;
 			}
 		}
@@ -353,7 +349,6 @@ void ManualControl::processControllerInput()
 			if(device->buttonStates[_controllerconfig->zap])
 			{
 				perform_switchview();
-				//in->toggleView = true;
 				cyclesToWait[2] = N_CYCLES;
 			}
 		}
@@ -362,7 +357,6 @@ void ManualControl::processControllerInput()
 			if(device->buttonStates[_controllerconfig->photo])
 			{
 				perform_picture();
-				//in->takePicture = true;
 				cyclesToWait[3] = N_CYCLES;
 			}
 		}
@@ -381,7 +375,6 @@ void ManualControl::processControllerInput()
 						perform_startRecording();
 					}
 				}
-				//in->toggleRecording = true;
 				cyclesToWait[4] = N_CYCLES;
 			}
 		}
@@ -390,7 +383,6 @@ void ManualControl::processControllerInput()
 			if(device->buttonStates[_controllerconfig->flip])
 			{
 				perform_flip();
-				//in->flip = true;
 				cyclesToWait[5] = N_CYCLES;
 			}
 		}
@@ -399,7 +391,6 @@ void ManualControl::processControllerInput()
 			if(device->buttonStates[_controllerconfig->slow])
 			{
 				slow = true;
-				//in->slowMode = true;
 				cyclesToWait[6] = N_CYCLES;
 			}
 		}

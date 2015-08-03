@@ -79,7 +79,13 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	msg->setStyleSheet("background: rgba(30, 30, 30, 0.85); font-size: 24px; color: #FFFFFF; border-radius: 10px;");
 	msg->hide();
 
-	videoPanel = new VideoDisplay();
+    bool bebop = false;
+    if(_af->bebop())
+    {
+        bebop = true;
+    }
+
+	videoPanel = new VideoDisplay(0, bebop);
 	//videoPanel->setAlignment(Qt::AlignCenter);
 	grid->addWidget(videoPanel, 0, 0, 1, 1);
 
@@ -114,6 +120,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	QObject::connect(this, SIGNAL(connectionLostSignal()), this, SLOT(handleConnectionLost()));
 	QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), videoPanel, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
 	QObject::connect(this, SIGNAL(controllerInputAvailableSignal(std::shared_ptr<const ControllerInput>)), videoPanel, SLOT(controllerInputAvailable(std::shared_ptr<const ControllerInput>)));
+    QObject::connect(this, SIGNAL(statusUpdateAvailableSignal(int)), videoPanel, SLOT(statusUpdateAvailable(int)));
 
 	installEventFilter(this);
 
@@ -577,7 +584,7 @@ void AFMainWindow::closeEvent(QCloseEvent *event)
 		_af->fpvdrone()->removeVideoListener(this);
 		//_af->fpvdrone()->removeVideoListener(_imgProcTest); //TODO: this is only a test
 	}
-	//_af->ardrone()->removeControllerInputListener(this);
+	_manualcontrol->removeControllerInputListener(this);
 	_af->drone()->removeConnectionStatusListener(this);
 
 	_imgProcTest->stopProcessing();

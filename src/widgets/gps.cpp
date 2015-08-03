@@ -74,7 +74,7 @@ void GPS::navdataAvailable(std::shared_ptr<const drone::navdata> uncast_navdata)
 {
     std::shared_ptr<const bebop::navdata> navdata = std::static_pointer_cast<const bebop::navdata>(uncast_navdata);
 
-    if(navdata->gps_fix || navdata->gps_sats > 4)
+    if(navdata->gps_fix || (navdata->gps_sats > 4 && navdata->latitude > 0 && navdata->longitude > 0))
     {
         longitude->setVisible(true);
         latitude->setVisible(true);

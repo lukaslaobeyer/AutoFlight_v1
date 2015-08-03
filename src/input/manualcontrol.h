@@ -68,7 +68,7 @@ class ManualControl : public QObject
 		bool _confirmFlip = false;      // Needed to request a confirmation for performing a flip/sending an emergency command
 		bool _confirmEmergency = false;
 
-        ControllerInput _in = {0, 0, 0, 0, false, false, false, false, false, false, false, false};
+        ControllerInput _in = {0, 0, 0, 0};
         std::vector<IControllerInputListener *> _ctrllisteners;
 
 	private Q_SLOTS:
