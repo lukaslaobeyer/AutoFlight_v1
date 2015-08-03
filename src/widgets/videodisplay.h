@@ -10,6 +10,8 @@
 
 #include <memory>
 
+#include "../input/controllerinput.h"
+
 class VideoDisplay : public QGLWidget
 {
 	Q_OBJECT
@@ -30,7 +32,7 @@ class VideoDisplay : public QGLWidget
 
 	public Q_SLOTS:
 		void navdataAvailable(std::shared_ptr<const drone::navdata> nd);
-		//void controllerInputAvailable(ControllerInput *in);
+		void controllerInputAvailable(std::shared_ptr<const ControllerInput> in);
 
 	protected:
 		void paintEvent(QPaintEvent *e);

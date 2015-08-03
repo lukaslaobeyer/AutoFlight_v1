@@ -19,6 +19,7 @@
 #include "widgets/videodisplay.h"
 #include "asmainwindow.h"
 #include "input/manualcontrol.h"
+#include "input/icontrollerinputlistener.h"
 
 #include <drone.h>
 #include <interface/inavdatalistener.h>
@@ -27,10 +28,11 @@
 #include "qinterface/qvideolistener.h"
 
 Q_DECLARE_METATYPE(std::shared_ptr<const drone::navdata>)
+Q_DECLARE_METATYPE(std::shared_ptr<const ControllerInput>)
 
 class ManualControl;
 
-class AFMainWindow : public QMainWindow, public INavdataListener, public IStatusListener, public IConnectionStatusListener, public IVideoListener, /*public IControllerInputListener,*/ public QVideoListener
+class AFMainWindow : public QMainWindow, public INavdataListener, public IStatusListener, public IConnectionStatusListener, public IVideoListener, public IControllerInputListener, public QVideoListener
 {
 	Q_OBJECT
 
@@ -40,7 +42,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 		void navdataAvailable(std::shared_ptr<const drone::navdata> nd);
 		void statusUpdateAvailable(int status);
 		void videoFrameAvailable(cv::Mat f);
-		//void controllerInputAvailable(ControllerInput *in);
+		void controllerInputAvailable(std::shared_ptr<const ControllerInput> in);
 		void connectionLost();
 		void connectionEstablished();
 
@@ -52,7 +54,6 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
         void downloadBebopMedia();
         void showDefaultKeyboardControls();
 		void showAboutDialog();
-		//void controllerInputAvailableSlot(ControllerInput *ci);
 	protected:
 		bool eventFilter(QObject *sender, QEvent *e);
 	private:
@@ -89,6 +90,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 
 		ImageProcessor *_imgProcTest = NULL;
 	private Q_SLOTS:
+		void showMessageSlot(QString message);
 		void attemptConnection();
 		void showControlConfigDialog();
 		void showDroneConfigDialog();
@@ -102,10 +104,11 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 		void handleConnectionLost();
 
 	Q_SIGNALS:
+		void showMessageSignal(QString message);
 		void navdataAvailableSignal(std::shared_ptr<const drone::navdata> nd);
         void statusUpdateAvailableSignal(int status);
 		void videoFrameAvailableSignal(QImage frame);
-		//void controllerInputAvailableSignal(ControllerInput *in);
+		void controllerInputAvailableSignal(std::shared_ptr<const ControllerInput> in);
 		void connectionLostSignal();
 	    void connectionEstablishedSignal();
 

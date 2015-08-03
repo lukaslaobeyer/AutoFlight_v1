@@ -57,6 +57,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 
 	// Register meta types
 	qRegisterMetaType<shared_ptr<const drone::navdata>>();
+    qRegisterMetaType<shared_ptr<const ControllerInput>>();
 
 	_messageTimer = new QTimer(this);
 	QObject::connect(_messageTimer, SIGNAL(timeout()), this, SLOT(hideMessages()));
@@ -102,17 +103,17 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 		_af->fpvdrone()->addVideoListener(this);
 		//_af->fpvdrone()->addVideoListener(_imgProcTest); // TODO: this is only a test
 	}
-	// TODO: Controller input; _af->ardrone()->addControllerInputListener(this);
 	_af->drone()->addConnectionStatusListener(this);
 
 	_manualcontrol.reset(new ManualControl(_af, this));
 	_manualcontrol->startUpdateLoop();
+    _manualcontrol->addControllerInputListener(this);
 
+    QObject::connect(this, SIGNAL(showMessageSignal(QString)), this, SLOT(showMessageSlot(QString)));
 	QObject::connect(this, SIGNAL(videoFrameAvailableSignal(QImage)), this, SLOT(videoFrameAvailable(QImage)));
 	QObject::connect(this, SIGNAL(connectionLostSignal()), this, SLOT(handleConnectionLost()));
 	QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), videoPanel, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
-	QObject::connect(this, SIGNAL(controllerInputAvailableSignal(ControllerInput *)), videoPanel, SLOT(controllerInputAvailable(ControllerInput *)));
-	QObject::connect(this, SIGNAL(controllerInputAvailableSignal(ControllerInput *)), this, SLOT(controllerInputAvailableSlot(ControllerInput *)));
+	QObject::connect(this, SIGNAL(controllerInputAvailableSignal(std::shared_ptr<const ControllerInput>)), videoPanel, SLOT(controllerInputAvailable(std::shared_ptr<const ControllerInput>)));
 
 	installEventFilter(this);
 
@@ -145,12 +146,17 @@ void AFMainWindow::showFirstRunInfoIfRequired()
 
 void AFMainWindow::showMessage(string message)
 {
-	msg->setText(QString::fromStdString(message));
-	msg->setGeometry((int) (size().width() / 2 - 200), (int) (size().height() / 2 - 25), 400, 50);
-	msg->raise();
-	msg->show();
+	Q_EMIT showMessageSignal(QString::fromStdString(message));
+}
 
-	_messageTimer->start(CONFIRMATION_TIMEOUT);
+void AFMainWindow::showMessageSlot(QString message)
+{
+    msg->setText(message);
+    msg->setGeometry((size().width() / 2 - 200), (size().height() / 2 - 25), 400, 50);
+    msg->raise();
+    msg->show();
+
+    _messageTimer->start(CONFIRMATION_TIMEOUT);
 }
 
 void AFMainWindow::hideMessages()
@@ -189,10 +195,10 @@ void AFMainWindow::videoFrameAvailable(cv::Mat f)
 	Q_EMIT videoFrameAvailableSignal(img);
 }
 
-/*void AFMainWindow::controllerInputAvailable(ControllerInput *in)
+void AFMainWindow::controllerInputAvailable(shared_ptr<const ControllerInput> in)
 {
 	Q_EMIT controllerInputAvailableSignal(in);
-}*/
+}
 
 void AFMainWindow::videoFrameAvailable(QImage f)
 {
@@ -400,20 +406,6 @@ void AFMainWindow::attemptConnection()
 	}
 }
 
-/*void AFMainWindow::controllerInputAvailableSlot(ControllerInput *in)
-{
-	static bool prev_picture_button_state = false;		 // Needed to detect if the picture taking button
-	bool current_picture_button_state = in->takePicture; // was pressed
-
-	if(prev_picture_button_state == false && current_picture_button_state == true)
-	{
-		// Picture button pressed, show message:
-		showMessage("Picture saved");
-	}
-
-	prev_picture_button_state = current_picture_button_state;
-}*/
-
 void AFMainWindow::handleConnectionLost()
 {
 	videoPanel->connectionLost();
@@ -533,7 +525,7 @@ void AFMainWindow::showControlConfigDialog()
 			else
 			{
 				invalidController = false;
-				controllerID = sc.getSelectedDeviceID();
+				controllerID = (unsigned int) sc.getSelectedDeviceID();
 			}
 		}
 		else

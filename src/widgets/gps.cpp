@@ -50,6 +50,13 @@ GPS::GPS(QWidget *parent) : QWidget(parent)
             contentLayout->addWidget(altitude);
             altitude->setVisible(false);
 
+            sat_cnt = new QLabel("visible sats");
+            sat_cnt->setAlignment(Qt::AlignCenter);
+            sat_cnt->setMargin(2);
+            sat_cnt->setStyleSheet("font: 10pt;");
+            contentLayout->addWidget(sat_cnt);
+            sat_cnt->setVisible(false);
+
         TitledBox *box = new TitledBox(tr("GPS"), content);
         layout->addWidget(box);
 
@@ -67,22 +74,33 @@ void GPS::navdataAvailable(std::shared_ptr<const drone::navdata> uncast_navdata)
 {
     std::shared_ptr<const bebop::navdata> navdata = std::static_pointer_cast<const bebop::navdata>(uncast_navdata);
 
-    if(navdata->gps_fix)
+    if(navdata->gps_fix || navdata->gps_sats > 4)
     {
-        fixStatus->setText("<qt>Fix status: <b>Available</b></qt>");
         longitude->setVisible(true);
         latitude->setVisible(true);
         altitude->setVisible(true);
+        sat_cnt->setVisible(true);
 
-        latitude->setText(QString::number(navdata->latitude) + "º N");
-        longitude->setText(QString::number(navdata->longitude) + "º E");
+        latitude->setText(QString::number(navdata->latitude, 'f', 6) + "º N");
+        longitude->setText(QString::number(navdata->longitude, 'f', 6) + "º E");
         altitude->setText(QString::number(navdata->gps_altitude) + "m");
+        sat_cnt->setText(QString::number(navdata->gps_sats) + " sattelites");
+
+        if(navdata->gps_fix)
+        {
+            fixStatus->setText(tr("<qt>Fix status: <b>Available</b></qt>"));
+        }
+        else
+        {
+            fixStatus->setText(tr("<qt>Fix status: <b>Unavailable</b></qt>"));
+        }
     }
     else
     {
-        fixStatus->setText("<qt>Fix status: <b>Unavailable</b></qt>");
+        fixStatus->setText(tr("<qt>Fix status: <b>Unavailable</b></qt>"));
         longitude->setVisible(false);
         latitude->setVisible(false);
         altitude->setVisible(false);
+        sat_cnt->setVisible(false);
     }
 }

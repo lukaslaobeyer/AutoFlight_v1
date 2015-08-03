@@ -110,7 +110,7 @@ void MAVLinkProxy::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 
     if(navdata->full)
     {
-        _sys_status.voltage_battery = (navdata->full_navdata.vbat) * 1000;
+        _sys_status.voltage_battery = (uint16_t) (navdata->full_navdata.vbat * 1000);
     }
 
     _attitude.pitch = navdata->attitude(0);
@@ -118,20 +118,39 @@ void MAVLinkProxy::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
     _attitude.yaw = navdata->attitude(2);
     _attitude.time_boot_ms = (uint32_t) milliseconds_since_epoch;
 
-    if(navdata->gps_fix)
+    if(navdata->gps_fix || navdata->gps_sats > 4)
     {
         _gps.time_usec = milliseconds_since_epoch * 1000;
         _gps.lat = (int32_t) (navdata->latitude * 1.0E7);
         _gps.lon = (int32_t) (navdata->longitude * 1.0E7);
         _gps.alt = (int32_t) (navdata->gps_altitude * 1000.0);
         _gps.satellites_visible = (uint8_t) navdata->gps_sats;
-        if(navdata->gps_sats < 4)
+        if(navdata->gps_altitude > 0)
         {
-            _gps.fix_type = 2;
+            _gps.fix_type = 3;
         }
         else
         {
-            _gps.fix_type = 3;
+            _gps.fix_type = 2;
+        }
+
+        if(!navdata->gps_fix)
+        {
+            _gps.fix_type = 0;
+        }
+
+        if(navdata->full)
+        {
+            if(navdata->full_navdata.gps_eph > 0 && navdata->full_navdata.gps_epv > 0)
+            {
+                _gps.eph = (uint16_t) (navdata->full_navdata.gps_eph * 100);
+                _gps.epv = (uint16_t) (navdata->full_navdata.gps_epv * 100);
+            }
+            else
+            {
+                _gps.eph = UINT16_MAX;
+                _gps.epv = UINT16_MAX;
+            }
         }
     }
     else

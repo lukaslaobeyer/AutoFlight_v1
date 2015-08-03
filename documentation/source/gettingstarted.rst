@@ -36,6 +36,8 @@ Arming/disarming the drone
 
 AutoFlight will refuse to send commands to the drone unless it is **armed**. To arm the drone and start flying, you will have to press :kbd:`shift` + :kbd:`alt` + :kbd:`Y`. To disarm the drone and disallow takeoff, press :kbd:`shift` + :kbd:`alt` + :kbd:`Y` again.
 
+To arm the drone using a controller, hold your altitude and pitch control at minimum for around 4 seconds until a confirmation that your drone has been armed appears.
+
 The status indicator on the right sidebar shows whether the drone is armed or not.
 
 Flying with a Joystick / Gamepad

@@ -24,11 +24,10 @@ void VideoDisplay::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
 	speed = sqrt(nd->linearvelocity(0) * nd->linearvelocity(0) + nd->linearvelocity(1) * nd->linearvelocity(1));
 }
 
-//TODO: controller input
-/*void VideoDisplay::controllerInputAvailable(ControllerInput *in)
+void VideoDisplay::controllerInputAvailable(std::shared_ptr<const ControllerInput> in)
 {
 	setInputData(in->roll, in->pitch, in->altitude, in->yaw);
-}*/
+}
 
 void VideoDisplay::setInputData(double prollInput, double ppitchInput, double paltitudeInput, double pyawInput)
 {

@@ -19,6 +19,7 @@ class GPS : public QWidget, public QNavdataListener
         QLabel *latitude = nullptr;
         QLabel *longitude = nullptr;
         QLabel *altitude = nullptr;
+        QLabel *sat_cnt = nullptr;
 };
 
 #endif
