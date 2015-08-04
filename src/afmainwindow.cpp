@@ -22,16 +22,18 @@
 #include <QtWidgets>
 
 #include <memory>
+
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
 #include <opencv2/opencv.hpp>
 
 #include <boost/filesystem.hpp>
-#include <src/widgets/gps.h>
-#include <src/widgets/status.h>
-#include <src/tools/bebopftp.h>
-#include <src/dialogs/bebopmediadownload.h>
+#include "widgets/gps.h"
+#include "widgets/status.h"
+#include "tools/bebopftp.h"
+#include "dialogs/bebopmediadownload.h"
+#include "dialogs/settingsdialog.h"
 
 // On a normal sized screen, minimum screen size should be:
 #define PREF_WIDTH 1270
@@ -243,6 +245,13 @@ void AFMainWindow::createMenuBar() {
 
 		QAction *flightSettings = new QAction(tr("Flight &Settings"), this);
 		drone->addAction(flightSettings);
+
+		if(_af->bebop())
+		{
+			QAction *bebopVideoSettings = new QAction(tr("&Video/picture settings"), this);
+			QWidget::connect(bebopVideoSettings, SIGNAL(triggered()), this, SLOT(launchBebopVideoSettings()));
+			drone->addAction(bebopVideoSettings);
+		}
 
 		drone->addSeparator();
 		/* TODO: This
@@ -622,6 +631,20 @@ void AFMainWindow::calibrateMagnetometerActionTriggered()
 	{
 		showMessage(tr("Automatic magnetometer calibration not supported").toStdString());
 	}
+}
+
+void AFMainWindow::launchBebopVideoSettings()
+{
+	GenericSettings settings;
+	settings.insert({"exposure", SettingsEntry{"Exposure", NumberSetting{0, -3, 3, 10, ""}}});
+	settings.insert({"saturation", SettingsEntry{"Saturation", NumberSetting{0, -100, 100, 1, ""}}});
+    settings.insert({"antiflicker", SettingsEntry{"Use 50 Hz antiflickering mode instead of 60Hz", false}});
+
+    SettingsDialog dialog(settings, this);
+    dialog.exec();
+
+    GenericSettings newSettings = dialog.getSettings();
+
 }
 
 void AFMainWindow::downloadBebopMedia()
