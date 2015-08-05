@@ -36,6 +36,7 @@
 #include "dialogs/settingsdialog.h"
 #include "tools/settingsfileio.h"
 #include "defaultsettings.h"
+#include "settingshelper.h"
 
 // On a normal sized screen, minimum screen size should be:
 #define PREF_WIDTH 1270
@@ -644,6 +645,10 @@ void AFMainWindow::launchBebopVideoSettings()
     QObject::connect(dialog, &SettingsDialog::applied, [=]() {
         GenericSettings newSettings = dialog->getSettings();
         SettingsFileIO::saveSettings(newSettings, "bebopvideo");
+        if(_af->bebop())
+        {
+            SettingsHelper::applyBebopVideoSettings(_af->bebop(), newSettings);
+        }
     });
 
     dialog->exec();
