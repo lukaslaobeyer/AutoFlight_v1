@@ -41,31 +41,39 @@ GenericSettings SettingsFileIO::loadSettings(const GenericSettings &defaults, st
 {
     GenericSettings settings = defaults;
 
-    YAML::Node ySettings = YAML::LoadFile(filename + ".yaml");
-
-    if(ySettings["settings"] && ySettings["settings"].IsMap())
+    try
     {
-        for(GenericSettings::iterator entry_iter = settings.begin(); entry_iter != settings.end(); entry_iter++)
-        {
-            string entry_id = entry_iter->first;
-            SettingsEntry entry = entry_iter->second;
+        YAML::Node ySettings = YAML::LoadFile(filename + ".yaml");
 
-            if(ySettings["settings"][entry_id])
+        if(ySettings["settings"] && ySettings["settings"].IsMap())
+        {
+            for(GenericSettings::iterator entry_iter = settings.begin(); entry_iter != settings.end(); entry_iter++)
             {
-                if(!parseEntry(&settings, entry_id, ySettings["settings"][entry_id]))
+                string entry_id = entry_iter->first;
+                SettingsEntry entry = entry_iter->second;
+
+                if(ySettings["settings"][entry_id])
                 {
-                    cout << "Error parsing key " << entry_id << " in " << filename << endl;
+                    if(!parseEntry(&settings, entry_id, ySettings["settings"][entry_id]))
+                    {
+                        cout << "Error parsing key " << entry_id << " in " << filename << endl;
+                    }
+                }
+                else
+                {
+                    cout << "Settings key " << entry_id << " not found in " << filename << endl;
                 }
             }
-            else
-            {
-                cout << "Settings key " << entry_id << " not found in " << filename << endl;
-            }
+        }
+        else
+        {
+            cout << filename << " is invalid" << endl;
         }
     }
-    else
+    catch(YAML::BadFile &e)
     {
-        cout << filename << " is invalid" << endl;
+        cout << filename << " does not exist!" << endl;
+        return defaults;
     }
 
     return settings;
