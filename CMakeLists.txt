@@ -86,7 +86,7 @@ ENDIF()
 # Find yaml-cpp
 IF(MINGW)
     set(YAMLCPP_LIBRARY "C:/yaml-cpp/lib/libyaml-cpp.a")
-    include_directories()
+    include_directories("C:/yaml-cpp/include")
 ELSE()
     find_package(YamlCpp)
 ENDIF()
