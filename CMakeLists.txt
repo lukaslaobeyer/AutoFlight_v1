@@ -84,7 +84,11 @@ ELSE()
 ENDIF()
 
 # Find yaml-cpp
-find_package(YamlCpp)
+IF(MINGW)
+    set(YAMLCPP_LIBRARY "C:/yaml-cpp/lib/libyaml-cpp.a")
+ELSE()
+    find_package(YamlCpp)
+ENDIF()
 
 # Find FFMPEG and dependencies
 #find_package(FFMPEG REQUIRED)
