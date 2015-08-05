@@ -19,6 +19,9 @@ class SettingsDialog : public QDialog
         GenericSettings getSettings();
         void updateEntry(std::string entry_id, bool newValue);
         void updateEntry(std::string entry_id, double newValue);
+        void updateEntry(std::string entry_id, const QString &newValue);
+    Q_SIGNALS:
+        void applied();
     private:
         GenericSettings newSettings;
 };
@@ -30,6 +33,7 @@ class SettingsEntryCreator : public boost::static_visitor<QLayout *>
 
         QLayout *operator()(bool setting) const;
         QLayout *operator()(const NumberSetting &setting) const;
+        QLayout *operator()(ListSetting &setting) const;
     private:
         SettingsDialog *_dialog;
         std::string _entry_id;

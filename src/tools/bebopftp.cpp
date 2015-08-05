@@ -10,7 +10,7 @@ using namespace bebopftp;
 
 void bebopftp::downloadMedia(std::string bebop_ip, std::string download_to, bool erase)
 {
-    if(download_to.back() != '/' || download_to.back() != '\\')
+    if(download_to.back() != '/' && download_to.back() != '\\')
     {
         download_to.append("/");
     }

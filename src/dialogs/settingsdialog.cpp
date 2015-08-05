@@ -27,6 +27,22 @@ SettingsDialog::SettingsDialog(GenericSettings &settings, QWidget *parent) : QDi
 
         layout->addLayout(sublayout);
     }
+
+    layout->addSpacing(30);
+
+    QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Apply | QDialogButtonBox::Cancel);
+    QPushButton* applyButton = bbox->button(QDialogButtonBox::Apply);
+    layout->addWidget(bbox);
+
+    adjustSize();
+    setFixedSize(size());
+
+    QObject::connect(bbox, &QDialogButtonBox::accepted, [=]() {
+        Q_EMIT applied();
+        accept();
+    });
+    QObject::connect(bbox, SIGNAL(rejected()), this, SLOT(reject()));
+    QObject::connect(applyButton, SIGNAL(clicked()), this, SIGNAL(applied()));
 }
 
 void SettingsDialog::updateEntry(string entry_id, bool newValue)
@@ -39,6 +55,19 @@ void SettingsDialog::updateEntry(string entry_id, double newValue)
 {
     NumberSetting newSetting = boost::get<NumberSetting>(newSettings[entry_id].entry);
     newSetting.value = newValue;
+    newSettings[entry_id].entry = newSetting;
+}
+
+void SettingsDialog::updateEntry(string entry_id, const QString &newValue)
+{
+    ListSetting newSetting = boost::get<ListSetting>(newSettings[entry_id].entry);
+    for(map<std::string, std::string>::const_iterator entry_iter = newSetting.values.begin(); entry_iter != newSetting.values.end(); entry_iter++)
+    {
+        if(newValue.toStdString() == entry_iter->second)
+        {
+            newSetting.selectedValue = entry_iter->first;
+        }
+    }
     newSettings[entry_id].entry = newSetting;
 }
 
@@ -98,6 +127,34 @@ QLayout *SettingsEntryCreator::operator()(const NumberSetting &setting) const
     });
 
     QObject::connect(spinner, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), std::bind(static_cast<void (SettingsDialog::*)(string, double)>(&SettingsDialog::updateEntry), _dialog, _entry_id, std::placeholders::_1));
+
+    return layout;
+}
+
+QLayout *SettingsEntryCreator::operator()(ListSetting &setting) const
+{
+    QHBoxLayout *layout = new QHBoxLayout();
+
+    QComboBox *combobox = new QComboBox();
+    int i = 0;
+    for(std::map<std::string, std::string>::iterator entry_iter = setting.values.begin(); entry_iter != setting.values.end(); entry_iter++)
+    {
+        string id = entry_iter->first;
+        string entry = entry_iter->second;
+
+        combobox->addItem(QString::fromStdString(entry));
+
+        if(id == setting.selectedValue)
+        {
+            combobox->setCurrentIndex(i);
+        }
+
+        i++;
+    }
+
+    QObject::connect(combobox, static_cast<void (QComboBox::*)(const QString &)>(&QComboBox::currentIndexChanged), std::bind(static_cast<void (SettingsDialog::*)(string, const QString &)>(&SettingsDialog::updateEntry), _dialog, _entry_id, std::placeholders::_1));
+
+    layout->addWidget(combobox);
 
     return layout;
 }

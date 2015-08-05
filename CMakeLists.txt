@@ -83,6 +83,9 @@ ELSE()
   include_directories(${EIGEN3_INCLUDE_DIR})
 ENDIF()
 
+# Find yaml-cpp
+find_package(YamlCpp)
+
 # Find FFMPEG and dependencies
 #find_package(FFMPEG REQUIRED)
 #include_directories(${FFMPEG_INCLUDE_DIR})
@@ -170,6 +173,7 @@ target_link_libraries(AutoFlight ${Boost_LIBRARIES})
 target_link_libraries(AutoFlight ${OpenCV_LIBS})
 target_link_libraries(AutoFlight ${FFMPEG_LIBRARIES})
 target_link_libraries(AutoFlight ${PYTHON_LIBRARIES})
+target_link_libraries(AutoFlight ${YAMLCPP_LIBRARY})
 
 # Link libraries in ../lib
 IF(MINGW)

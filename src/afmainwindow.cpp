@@ -34,6 +34,8 @@
 #include "tools/bebopftp.h"
 #include "dialogs/bebopmediadownload.h"
 #include "dialogs/settingsdialog.h"
+#include "tools/settingsfileio.h"
+#include "defaultsettings.h"
 
 // On a normal sized screen, minimum screen size should be:
 #define PREF_WIDTH 1270
@@ -635,16 +637,21 @@ void AFMainWindow::calibrateMagnetometerActionTriggered()
 
 void AFMainWindow::launchBebopVideoSettings()
 {
-	GenericSettings settings;
-	settings.insert({"exposure", SettingsEntry{"Exposure", NumberSetting{0, -3, 3, 10, ""}}});
-	settings.insert({"saturation", SettingsEntry{"Saturation", NumberSetting{0, -100, 100, 1, ""}}});
-    settings.insert({"antiflicker", SettingsEntry{"Use 50 Hz antiflickering mode instead of 60Hz", false}});
+    GenericSettings settings = SettingsFileIO::loadSettings(defaultBebopVideoSettings, "bebopvideo");
 
-    SettingsDialog dialog(settings, this);
-    dialog.exec();
+    SettingsDialog *dialog = new SettingsDialog(settings, this);
 
-    GenericSettings newSettings = dialog.getSettings();
+    QObject::connect(dialog, &SettingsDialog::applied, [=]() {
+        GenericSettings newSettings = dialog->getSettings();
+        SettingsFileIO::saveSettings(newSettings, "bebopvideo");
+    });
 
+    dialog->exec();
+
+    if(dialog)
+    {
+        delete dialog;
+    }
 }
 
 void AFMainWindow::downloadBebopMedia()

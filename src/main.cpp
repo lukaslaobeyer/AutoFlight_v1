@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 
 	Gamepad_shutdown();
 
-	Py_Finalize();
+	//Py_Finalize();
 
 	std::cout << "Closing...\n";
 
