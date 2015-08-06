@@ -26,4 +26,16 @@ const GenericSettings defaultBebopVideoSettings
                 }}}}
         };
 
+const GenericSettings defaultFlightConfig
+        {
+                {"altitude", SettingsEntry{"Maximum altitude", NumberSetting{5, 1, 200, 10, "m"}}},
+                {"angle", SettingsEntry{"Maximum pitch/roll angle", NumberSetting{12, 5, 30, 1, "deg"}}},
+                {"vertical_speed", SettingsEntry{"Maximum vertical speed", NumberSetting{1, 0.2, 2, 100, "m/s"}}},
+                {"rotation_speed", SettingsEntry{"Maximum rotation speed", NumberSetting{100, 10, 360, 1, "deg/s"}}},
+                {"flight_mode", SettingsEntry{"Flight mode", ListSetting{"indoor", {
+                        {"indoor", "Indoor with hull"},
+                        {"outdoor", "Outdoor without hull"}
+                }}}}
+        };
+
 #endif

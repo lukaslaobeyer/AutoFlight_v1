@@ -14,10 +14,8 @@
 #include "dialogs/selectcontroller.h"
 #include "dialogs/configurecontrols.h"
 #include "dialogs/welcomedialog.h"
-#include "dialogs/dronesettings.h"
 
 #include "tools/controllerconfigurationfileio.h"
-#include "tools/droneconfigurationfileio.h"
 
 #include <QtWidgets>
 
@@ -496,31 +494,29 @@ void AFMainWindow::launchImageProcessingPipelineEditor()
 
 void AFMainWindow::showDroneConfigDialog()
 {
-	drone::config savedConfig = DroneConfigurationFileIO::loadDroneConfiguration(0);
+	GenericSettings settings = SettingsFileIO::loadSettings(defaultFlightConfig, "flightconfig");
 
-	if(!savedConfig.valid)
-    {
-        // Load default config
-        savedConfig = _af->drone()->getConfig();
-    }
+	SettingsDialog *dialog = new SettingsDialog(settings, this);
 
-	DroneSettings ds(savedConfig, this);
-	ds.exec();
+	QObject::connect(dialog, &SettingsDialog::applied, [=]() {
+		GenericSettings newSettings = dialog->getSettings();
+		SettingsFileIO::saveSettings(newSettings, "flightconfig");
+		SettingsHelper::applyFlightSettings(_af->drone(), newSettings);
+	});
 
-	drone::config newConfig = ds.getConfiguration();
+	dialog->exec();
 
-	if(newConfig.valid)
-    {
-		DroneConfigurationFileIO::saveDroneConfiguration(newConfig, 0);
-		_af->drone()->setConfig(newConfig);
+	if(dialog)
+	{
+		delete dialog;
 	}
 }
 
 void AFMainWindow::loadDroneConfiguration()
 {
-    drone::config savedConfig = DroneConfigurationFileIO::loadDroneConfiguration(0);
-
-    _af->drone()->setConfig(savedConfig);
+    GenericSettings settings = SettingsFileIO::loadSettings(defaultFlightConfig, "flightconfig");
+    SettingsFileIO::saveSettings(settings, "flightconfig");
+    SettingsHelper::applyFlightSettings(_af->drone(), settings);
 }
 
 void AFMainWindow::showControlConfigDialog()

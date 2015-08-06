@@ -5,12 +5,14 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <drone.h>
 #include <drones/bebop/types.h>
 #include "genericsettings.h"
 
 namespace SettingsHelper
 {
     void applyBebopVideoSettings(std::shared_ptr<Bebop> b, GenericSettings &s);
+    void applyFlightSettings(std::shared_ptr<Drone> d, GenericSettings &s);
 
     const std::map<std::string, bebop::pictureformat> PIC_FMTS {
             {"raw", bebop::PICFMT_RAW},
@@ -31,6 +33,11 @@ namespace SettingsHelper
             {"auto", bebop::AF_AUTO},
             {"50", bebop::AF_50HZ},
             {"60", bebop::AF_60HZ}
+    };
+
+    const std::map<std::string, bool> FLIGHT_MODES {
+            {"indoor", false},
+            {"outdoor", true}
     };
 }
 

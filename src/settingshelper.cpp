@@ -20,3 +20,25 @@ void SettingsHelper::applyBebopVideoSettings(std::shared_ptr<Bebop> b, GenericSe
         cout << "error applying new bebop video settings: what(): " << e.what() << endl;
     }
 }
+
+void SettingsHelper::applyFlightSettings(std::shared_ptr<Drone> d, GenericSettings &s)
+{
+    try
+    {
+        drone::config config;
+
+        config.limits.altitude = (float) (boost::get<NumberSetting>(s["altitude"].entry).value);
+        config.limits.angle = (float) ((boost::get<NumberSetting>(s["angle"].entry).value) * (M_PI/180.0));
+        config.limits.yawspeed = (float) ((boost::get<NumberSetting>(s["rotation_speed"].entry).value) * (M_PI/180.0));
+        config.limits.vspeed = (float) (boost::get<NumberSetting>(s["vertical_speed"].entry).value);
+        config.outdoor = FLIGHT_MODES.at(boost::get<ListSetting>(s["flight_mode"].entry).selectedValue);
+
+        config.valid = true;
+
+        d->setConfig(config);
+    }
+    catch(boost::bad_get &e)
+    {
+        cout << "error applying new bebop video settings: what(): " << e.what() << endl;
+    }
+}
