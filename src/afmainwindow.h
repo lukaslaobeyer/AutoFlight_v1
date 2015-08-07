@@ -97,6 +97,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 		void videoFrameAvailable(QImage f);
 		void processedFrameAvailable(QImage f);
 		void toggleHUD(bool showHUD);
+		void resetBebopSettings();
 		void launchBebopVideoSettings();
 		void launchAutoScriptIDE();
 		void launchSessionViewerDialog();

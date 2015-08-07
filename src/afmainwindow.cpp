@@ -194,7 +194,7 @@ void AFMainWindow::connectionLost()
 
 void AFMainWindow::connectionEstablished()
 {
-	Q_EMIT connectionEstablishedSignal();
+    Q_EMIT connectionEstablishedSignal();
 	//_imgProcTest->startProcessing(); // TODO: this is only a test
 }
 
@@ -257,6 +257,13 @@ void AFMainWindow::createMenuBar() {
 		}
 
 		drone->addSeparator();
+
+        if(_af->bebop())
+        {
+            QAction *resetBebop = new QAction(tr("&Reset drone settings"), this);
+            QWidget::connect(resetBebop, SIGNAL(triggered()), this, SLOT(resetBebopSettings()));
+            drone->addAction(resetBebop);
+        }
 		/* TODO: This
 		QAction *pairDrone = new QAction(tr("Pair (Mac-Address coupling)"), this);
 		drone->addAction(pairDrone);
@@ -504,6 +511,19 @@ void AFMainWindow::loadDroneConfiguration()
     {
         GenericSettings bebopvideosettings = SettingsFileIO::loadSettings(defaultBebopVideoSettings, "bebopvideo");
         SettingsHelper::applyBebopVideoSettings(_af->bebop(), bebopvideosettings);
+    }
+}
+
+void AFMainWindow::resetBebopSettings()
+{
+    if(_af->bebop())
+    {
+        boost::thread([=]()
+        {
+            _af->bebop()->resetSettings();
+            boost::this_thread::sleep(boost::posix_time::milliseconds(2500));
+            loadDroneConfiguration();
+        });
     }
 }
 

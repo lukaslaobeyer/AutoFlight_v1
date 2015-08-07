@@ -14,7 +14,8 @@ const GenericSettings defaultBebopVideoSettings
                         {"cloudy", "Cloudy"},
                         {"cool_white", "Cool white"}
                 }}}},
-                {"antiflicker", SettingsEntry{"Antiflicker mode", ListSetting{"50", {
+                {"antiflicker", SettingsEntry{"Antiflicker mode", ListSetting{"auto", {
+                        {"auto", "Auto (recommended)"},
                         {"50", "50 Hz"},
                         {"60", "60 Hz"}
                 }}}},
