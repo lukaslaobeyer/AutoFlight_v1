@@ -79,7 +79,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	// Shows important notifications
 	msg = new QLabel(this);
 	msg->setAlignment(Qt::AlignCenter);
-	msg->setStyleSheet("background: rgba(30, 30, 30, 0.85); font-size: 24px; color: #FFFFFF; border-radius: 10px;");
+	msg->setStyleSheet("background: rgba(30, 30, 30, 0.85); font-size: 24px; color: #FFFFFF; border-radius: 0;");
 	msg->hide();
 
     bool bebop = false;
@@ -161,8 +161,10 @@ void AFMainWindow::showMessage(string message)
 
 void AFMainWindow::showMessageSlot(QString message)
 {
+	const static int msg_width = 450;
+
     msg->setText(message);
-    msg->setGeometry((size().width() / 2 - 200), (size().height() / 2 - 25), 400, 50);
+    msg->setGeometry((size().width() / 2 - (msg_width / 2)), (size().height() / 2 - 25), msg_width, 50);
     msg->raise();
     msg->show();
 
@@ -492,6 +494,19 @@ void AFMainWindow::launchImageProcessingPipelineEditor()
 	_imgProc->show();
 }
 
+
+void AFMainWindow::loadDroneConfiguration()
+{
+    GenericSettings settings = SettingsFileIO::loadSettings(defaultFlightConfig, "flightconfig");
+    SettingsHelper::applyFlightSettings(_af->drone(), settings);
+
+    if(_af->bebop())
+    {
+        GenericSettings bebopvideosettings = SettingsFileIO::loadSettings(defaultBebopVideoSettings, "bebopvideo");
+        SettingsHelper::applyBebopVideoSettings(_af->bebop(), bebopvideosettings);
+    }
+}
+
 void AFMainWindow::showDroneConfigDialog()
 {
 	GenericSettings settings = SettingsFileIO::loadSettings(defaultFlightConfig, "flightconfig");
@@ -512,11 +527,27 @@ void AFMainWindow::showDroneConfigDialog()
 	}
 }
 
-void AFMainWindow::loadDroneConfiguration()
+void AFMainWindow::launchBebopVideoSettings()
 {
-    GenericSettings settings = SettingsFileIO::loadSettings(defaultFlightConfig, "flightconfig");
-    SettingsFileIO::saveSettings(settings, "flightconfig");
-    SettingsHelper::applyFlightSettings(_af->drone(), settings);
+    GenericSettings settings = SettingsFileIO::loadSettings(defaultBebopVideoSettings, "bebopvideo");
+
+    SettingsDialog *dialog = new SettingsDialog(settings, this);
+
+    QObject::connect(dialog, &SettingsDialog::applied, [=]() {
+        GenericSettings newSettings = dialog->getSettings();
+        SettingsFileIO::saveSettings(newSettings, "bebopvideo");
+        if(_af->bebop())
+        {
+            SettingsHelper::applyBebopVideoSettings(_af->bebop(), newSettings);
+        }
+    });
+
+    dialog->exec();
+
+    if(dialog)
+    {
+        delete dialog;
+    }
 }
 
 void AFMainWindow::showControlConfigDialog()
@@ -630,29 +661,6 @@ void AFMainWindow::calibrateMagnetometerActionTriggered()
 	{
 		showMessage(tr("Automatic magnetometer calibration not supported").toStdString());
 	}
-}
-
-void AFMainWindow::launchBebopVideoSettings()
-{
-    GenericSettings settings = SettingsFileIO::loadSettings(defaultBebopVideoSettings, "bebopvideo");
-
-    SettingsDialog *dialog = new SettingsDialog(settings, this);
-
-    QObject::connect(dialog, &SettingsDialog::applied, [=]() {
-        GenericSettings newSettings = dialog->getSettings();
-        SettingsFileIO::saveSettings(newSettings, "bebopvideo");
-        if(_af->bebop())
-        {
-            SettingsHelper::applyBebopVideoSettings(_af->bebop(), newSettings);
-        }
-    });
-
-    dialog->exec();
-
-    if(dialog)
-    {
-        delete dialog;
-    }
 }
 
 void AFMainWindow::downloadBebopMedia()

@@ -134,8 +134,14 @@ VariantSetting SettingsFileIO::SettingsLoadVisitor::operator()(bool s) const
 
 VariantSetting SettingsFileIO::SettingsLoadVisitor::operator()(const NumberSetting& s) const
 {
+    double newValue = entry.as<double>();
+    if(newValue < s.min || newValue > s.max)
+    {
+        return s;
+    }
+
     NumberSetting setting = s;
-    setting.value = entry.as<double>();
+    setting.value = newValue;
     return setting;
 }
 
