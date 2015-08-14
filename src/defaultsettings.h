@@ -39,4 +39,23 @@ const GenericSettings defaultFlightConfig
                 }}}}
         };
 
+/*const GenericSettings defaultControllerConfig
+        {
+                {"controller", SettingsEntry{"Controller ID", ControllerIDSetting{-1, -1, -1}}},
+
+                {"height", SettingsEntry{"Height control", AnalogControlSetting{-1, -1, -1}}},
+                {"yaw", SettingsEntry{"Yaw control", AnalogControlSetting{-1, -1, -1}}},
+                {"pitch", SettingsEntry{"Pitch control", AnalogControlSetting{-1, -1, -1}}},
+                {"roll", SettingsEntry{"Roll control", AnalogControlSetting{-1, -1, -1}}},
+
+                {"takeoff_land", SettingsEntry{"Take off/land", -1}},
+                {"emergency", SettingsEntry{"Emergency motor cutoff", -1}},
+                {"recording", SettingsEntry{"Start/stop recording", -1}},
+                {"picture", SettingsEntry{"Take a picture", -1}},
+                {"switchview", SettingsEntry{"Switch view", -1}},
+                {"flip", SettingsEntry{"Perform flip", -1}},
+                {"slow", SettingsEntry{"Slow mode", -1}},
+                {"bebop_camera", SettingsEntry{"Bebop drone camera angle", -1}}
+        };*/
+
 #endif

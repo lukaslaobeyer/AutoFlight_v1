@@ -12,42 +12,13 @@ class Control
 	public:
 		Control(std::shared_ptr<Drone> drone = nullptr, bool simulationMode = false, IScriptSimulationUI *simUI = nullptr);
 
-		bool takeOff();
-		bool land();
+		void takeOff();
+		void land();
 
-		bool move(float phi, float theta, float gaz, float yaw);
-		bool move_time(float phi, float theta, float gaz, float yaw, int milliseconds);
-		bool move_distance(float phi, float theta, float gaz, float yaw, float centimeters);
+		void move(float pitch, float roll, float gaz, float yaw);
+		void hover();
 
-		bool forward(float speed);
-		bool forward_time(float speed, int milliseconds);
-		bool forward_distance(float speed, float centimeters);
-
-		bool backward(float speed);
-		bool backward_time(float speed, int milliseconds);
-		bool backward_distance(float speed, float centimeters);
-
-		bool left(float speed);
-		bool left_time(float speed, int milliseconds);
-		bool left_distance(float speed, float centimeters);
-
-		bool right(float speed);
-		bool right_time(float speed, int milliseconds);
-		bool right_distance(float speed, float centimeters);
-
-		bool up(float speed);
-		bool up_time(float speed, int milliseconds);
-		bool up_distance(float speed, float centimeters);
-
-		bool down(float speed);
-		bool down_time(float speed, int milliseconds);
-		bool down_distance(float speed, float centimeters);
-
-		bool rotate(float speed, float degs);
-
-		bool hover();
-
-		bool flip(std::string direction = "LEFT");
+		void flip(std::string direction = "LEFT");
 
 		bool abortFlag = false; // Is checked by functions that run longer, like move_time and move_distance to react to interruptions
 	private:

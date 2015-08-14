@@ -28,7 +28,22 @@ struct ListSetting
     std::map<std::string, std::string> values;
 };
 
-typedef boost::variant<NumberSetting, bool, ListSetting> VariantSetting;
+struct AnalogControlSetting
+{
+    int control; // Analog control axis ID
+    int alt_p;   // Digital alternative: Positive
+    int alt_m;   // Digital alternative: Negative
+};
+
+struct ControllerIDSetting
+{
+    int vendorID;
+    int productID;
+
+    int deviceID;
+};
+
+typedef boost::variant<NumberSetting, bool, ListSetting/*, int, ControllerIDSetting, AnalogControlSetting*/> VariantSetting;
 
 struct SettingsEntry
 {

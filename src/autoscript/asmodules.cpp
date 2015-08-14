@@ -3,12 +3,34 @@
 
 #define CHECK_RATE 25 // Every how many milliseconds it should be checked if a script abort has been requested
 
-#define ASSERT_ARDRONE_B(d) if(d == NULL) { return false; } // Returns false when the ARDrone control object is NULL (for boolean functions)
-#define ASSERT_ARDRONE_F(d) if(d == NULL) { return -1.0f; } // Returns -1.0f when the ARDrone control object is NULL (for float functions)
+#define ASSERT_ARDRONE(d)   if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return; } // Returns false when the drone control object is NULL (for boolean functions)
+#define ASSERT_ARDRONE_B(d) if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return false; } // Returns false when the drone control object is NULL (for boolean functions)
+#define ASSERT_ARDRONE_F(d) if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return -1; } // Returns -1.0f when the drone control object is NULL (for float functions)
 
+#define SIMULATE_ACTION(sim, text, ssui) if(sim) { ssui->printAction(text); return; } // Returns true if simulation mode is turned on and prints specified text
 #define SIMULATE_ACTION_B(sim, text, ssui) if(sim) { ssui->printAction(text); return true; } // Returns true if simulation mode is turned on and prints specified text
 #define SIMULATE_INPUT_B(sim, question, ssui) if(sim) { return ssui->getSimulatedBoolInput(question); }    // If simulation mode is on, asks for "true" or "false"
 #define SIMULATE_INPUT_F(sim, question, unit, ssui) if(sim) { return ssui->getSimulatedFloatInput(question, unit); } // If sim. is on, asks for a float value
+
+void handle_status(drone::error status)
+{
+	if(status == drone::OK)
+	{
+		return;
+	}
+
+	std::string error;
+	if(status == drone::NOT_ARMED)
+	{
+		error = "drone is not armed";
+	}
+	else if(status == drone::NOT_CONNECTED)
+	{
+		error = "not connected to drone";
+	}
+	PyErr_SetString(PyExc_RuntimeError, error.c_str());
+	boost::python::throw_error_already_set();
+}
 
 //////////// CONTROL FUNCTIONS ////////////
 
@@ -19,41 +41,38 @@ Control::Control(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimul
 	ssui = simulationUI;
 }
 
-bool Control::takeOff()
+void Control::takeOff()
 {
-	ASSERT_ARDRONE_B(d)
-	SIMULATE_ACTION_B(sim, "Taking off", ssui)
+	ASSERT_ARDRONE(d)
+	SIMULATE_ACTION(sim, "Taking off", ssui)
 
-	return drone_takeOff(d) == drone::OK;
-	return false;
+	handle_status(drone_takeOff(d));
 }
 
-bool Control::land()
+void Control::land()
 {
-	ASSERT_ARDRONE_B(d)
-	SIMULATE_ACTION_B(sim, "Landing", ssui)
+	ASSERT_ARDRONE(d)
+	SIMULATE_ACTION(sim, "Landing", ssui)
 
-	return drone_land(d) == drone::OK;
-	return false;
+    handle_status(drone_land(d));
 }
 
-bool Control::move(float pitch, float roll, float gaz, float yaw)
+void Control::move(float pitch, float roll, float gaz, float yaw)
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_ARDRONE(d)
 
 	if(sim)
 	{
 		std::stringstream description;
 		description << "Moving with pitch = " << pitch << "; roll = " << roll << "; gaz = " << gaz << " and yaw = " << yaw << ".";
 
-		SIMULATE_ACTION_B(sim, description.str(), ssui)
+		SIMULATE_ACTION(sim, description.str(), ssui)
 	}
 
-	return (drone_setAttitudeRel(d, pitch, roll, yaw, gaz) == drone::OK);
-	return false;
+    handle_status(drone_setAttitudeRel(d, pitch, roll, yaw, gaz));
 }
 
-bool Control::move_distance(float pitch, float roll, float gaz, float yaw, float centimeters)
+/*bool Control::move_distance(float pitch, float roll, float gaz, float yaw, float centimeters)
 {
 	ASSERT_ARDRONE_B(d)
 
@@ -181,96 +200,6 @@ bool Control::move_time(float pitch, float roll, float gaz, float yaw, int milli
 	return true;
 }
 
-bool Control::forward(float speed)
-{
-	return move(-speed, 0, 0, 0);
-}
-
-bool Control::forward_time(float speed, int milliseconds)
-{
-	return move_time(-speed, 0, 0, 0, milliseconds);
-}
-
-bool Control::forward_distance(float speed, float centimeters)
-{
-	return move_distance(-speed, 0, 0, 0, centimeters);
-}
-
-bool Control::backward(float speed)
-{
-	return move(speed, 0, 0, 0);
-}
-
-bool Control::backward_time(float speed, int milliseconds)
-{
-	return move_time(speed, 0, 0, 0, milliseconds);
-}
-
-bool Control::backward_distance(float speed, float centimeters)
-{
-	return move_distance(speed, 0, 0, 0, centimeters);
-}
-
-bool Control::left(float speed)
-{
-	return move(0, -speed, 0, 0);
-}
-
-bool Control::left_time(float speed, int milliseconds)
-{
-	return move_time(0, -speed, 0, 0, milliseconds);
-}
-
-bool Control::left_distance(float speed, float centimeters)
-{
-	return move_distance(0, -speed, 0, 0, centimeters);
-}
-
-bool Control::right(float speed)
-{
-	return move(0, speed, 0, 0);
-}
-
-bool Control::right_time(float speed, int milliseconds)
-{
-	return move_time(0, speed, 0, 0, milliseconds);
-}
-
-bool Control::right_distance(float speed, float centimeters)
-{
-	return move_distance(0, speed, 0, 0, centimeters);
-}
-
-bool Control::up(float speed)
-{
-	return move(0, 0, speed, 0);
-}
-
-bool Control::up_time(float speed, int milliseconds)
-{
-	return move_time(0, 0, speed, 0, milliseconds);
-}
-
-bool Control::up_distance(float speed, float centimeters)
-{
-	return move_distance(0, 0, speed, 0, centimeters);
-}
-
-bool Control::down(float speed)
-{
-	return move(0, 0, -speed, 0);
-}
-
-bool Control::down_time(float speed, int milliseconds)
-{
-	return move_time(0, 0, -speed, 0, milliseconds);
-}
-
-bool Control::down_distance(float speed, float centimeters)
-{
-	return move_distance(0, 0, -speed, 0, centimeters);
-}
-
 bool Control::rotate(float speed, float degs)
 {
 	ASSERT_ARDRONE_B(d)
@@ -328,21 +257,20 @@ bool Control::rotate(float speed, float degs)
 
 	return complete;
 	return false;
+}*/
+
+void Control::hover()
+{
+	ASSERT_ARDRONE(d)
+	SIMULATE_ACTION(sim, "Hovering", ssui)
+
+	handle_status(drone_hover(d));
 }
 
-bool Control::hover()
+void Control::flip(std::string direction)
 {
-	ASSERT_ARDRONE_B(d)
-	SIMULATE_ACTION_B(sim, "Hovering", ssui)
-
-	return drone_hover(d) == drone::OK;
-	return false;
-}
-
-bool Control::flip(std::string direction)
-{
-	ASSERT_ARDRONE_B(d)
-	SIMULATE_ACTION_B(sim, "Flipping", ssui)
+	ASSERT_ARDRONE(d)
+	SIMULATE_ACTION(sim, "Flipping", ssui)
 
 	//TODO: this
 	/*
@@ -363,9 +291,9 @@ bool Control::flip(std::string direction)
 		return d->drone_flip(ardrone::flip::RIGHT);
 	}
 	else
-	{*/
+	{
 		return false;
-	//}
+	}*/
 }
 
 //////////// SENSOR DATA RETREIVAL FUNCTIONS ////////////

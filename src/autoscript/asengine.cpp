@@ -17,7 +17,7 @@ BOOST_PYTHON_MODULE(autoscript)
 				.def("takeOff", &Control::takeOff)
 				.def("land", &Control::land)
 				.def("move", &Control::move)
-				.def("move_time", &Control::move_time)
+				/*.def("move_time", &Control::move_time)
 				.def("move_distance", &Control::move_distance)
 				.def("forward", &Control::forward)
 				.def("forward_time", &Control::forward_time)
@@ -37,7 +37,7 @@ BOOST_PYTHON_MODULE(autoscript)
 				.def("backward", &Control::backward)
 				.def("backward_time", &Control::backward_time)
 				.def("backward_distance", &Control::backward_distance)
-				.def("rotate", &Control::rotate)
+				.def("rotate", &Control::rotate)*/
 				.def("hover", &Control::hover)
 				.def("flip", &Control::flip);
 
