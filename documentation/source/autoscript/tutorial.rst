@@ -19,7 +19,7 @@ Take Off and Land
 Let's start with something very simple. Send a take off command to the drone, keep it in the air for some seconds, and land.
 To make the drone take off, the function ::
 
-   control.takeOff()
+   basicctl.takeoff()
 
 has to be called. It's that simple. This function, however, does only send the take off command without waiting for the drone to actually take off, so we'll have to wait a few seconds. Python has a function called ``sleep()`` which does exactly this. It can be found in the ``time`` module. To use functions in the time module, you have to import it. This is done at the beginning of the Python script, using the ``import`` command followed by the module you want to import, in this case ::
 
@@ -31,7 +31,7 @@ Then you can use the sleep function with the time you want to sleep as parameter
 
 The above function waits 6 seconds before letting the script contine. This will be enough time for the AR.Drone to take off. The rest of the time it will simply stay in the air. Now it's time to land the drone. The function for doing that is ::
 
-   control.land()
+   basicctl.land()
 
 Finally, we'll show a message saying that the script worked. Python has a command that shows a message called ``print``. Let's print our message ::
 
@@ -40,15 +40,15 @@ Finally, we'll show a message saying that the script worked. Python has a comman
 The finished script would look like this: ::
 
    import time
-   
-   control.takeOff()
+
+   basicctl.takeoff()
    time.sleep(6)
-   control.land()
+   basicctl.land()
    print("I just made the drone automatically take off and land!")
-   
+
 Now it's time to run that script. Click run (The 4th button on the bottom bar, counting from the left). If there's a typo and the drone doesn't land because an error ocurred, you can just land the drone manually (switch to the main window and press ``T``), check your code for typos and try to run it again.
 
-If everything worked, congratulations! You ran your first AR.Drone-controlling-Python-script!
+If everything worked, congratulations! You ran your first drone-controlling-Python-script!
 
 More coming soon
 ================

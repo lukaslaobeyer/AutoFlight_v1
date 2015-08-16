@@ -7,12 +7,45 @@
 #include <string>
 #include <memory>
 
+class AutoScriptModule
+{
+    public:
+        AutoScriptModule(std::shared_ptr<Drone> drone = nullptr, bool simulationMode = false, IScriptSimulationUI *simUI = nullptr);
+
+        void takeoff();
+        void land();
+
+        void move(float pitch, float roll, float gaz, float yaw);
+        void move_rel(float pitch, float roll, float gaz, float yaw);
+        void hover();
+
+        void flip(std::string direction = "LEFT");
+
+        boost::python::dict navdata();
+        boost::python::dict status();
+
+        void flattrim();
+
+        void startrecording();
+        void stoprecording();
+
+        void changeview(std::string view);
+
+        void takepicture();
+
+        bool abortFlag = false; // Is checked by functions that run longer, like move_time and move_distance to react to interruptions
+    private:
+        std::shared_ptr<Drone> d = nullptr;
+        bool sim = true;
+        IScriptSimulationUI *ssui = NULL;
+};
+/*
 class Control
 {
 	public:
 		Control(std::shared_ptr<Drone> drone = nullptr, bool simulationMode = false, IScriptSimulationUI *simUI = nullptr);
 
-		void takeOff();
+		void takeoff();
 		void land();
 
 		void move(float pitch, float roll, float gaz, float yaw);
@@ -31,6 +64,8 @@ class Sensors
 {
 	public:
 		Sensors(std::shared_ptr<Drone> drone = nullptr, bool simulationMode = false, IScriptSimulationUI *simUI = nullptr);
+
+		boost::python::dict navdata();
 
 		float getAltitude();
 		float getOrientation(std::string axis);
@@ -83,5 +118,5 @@ class HWExt
 		bool sim = true;
 		IScriptSimulationUI *ssui;
 };
-
+*/
 #endif

@@ -14,4 +14,4 @@ Contents:
 
    intro
    tutorial
-   functions
+   builtin

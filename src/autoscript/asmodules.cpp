@@ -3,9 +3,9 @@
 
 #define CHECK_RATE 25 // Every how many milliseconds it should be checked if a script abort has been requested
 
-#define ASSERT_ARDRONE(d)   if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return; } // Returns false when the drone control object is NULL (for boolean functions)
-#define ASSERT_ARDRONE_B(d) if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return false; } // Returns false when the drone control object is NULL (for boolean functions)
-#define ASSERT_ARDRONE_F(d) if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return -1; } // Returns -1.0f when the drone control object is NULL (for float functions)
+//#define ASSERT_DRONE(d)   if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return; } // Returns false when the drone control object is NULL (for boolean functions)
+//#define ASSERT_DRONE_B(d) if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return false; } // Returns false when the drone control object is NULL (for boolean functions)
+//#define ASSERT_DRONE_F(d) if(d == NULL) { std::string error = "FATAL: Control module not properly initialized!"; PyErr_SetString(PyExc_RuntimeError, error.c_str()); boost::python::throw_error_already_set(); return -1; } // Returns -1.0f when the drone control object is NULL (for float functions)
 
 #define SIMULATE_ACTION(sim, text, ssui) if(sim) { ssui->printAction(text); return; } // Returns true if simulation mode is turned on and prints specified text
 #define SIMULATE_ACTION_B(sim, text, ssui) if(sim) { ssui->printAction(text); return true; } // Returns true if simulation mode is turned on and prints specified text
@@ -32,6 +32,159 @@ void handle_status(drone::error status)
 	boost::python::throw_error_already_set();
 }
 
+///////////////////////////////////////////
+
+AutoScriptModule::AutoScriptModule(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimulationUI *simulationUI)
+{
+    if(drone == nullptr)
+    {
+        throw std::runtime_error("drone control reference is null");
+    }
+
+    d = drone;
+    sim = simulationMode;
+    ssui = simulationUI;
+}
+
+void AutoScriptModule::takeoff()
+{
+    SIMULATE_ACTION(sim, "Taking off", ssui)
+
+    handle_status(drone_takeOff(d));
+}
+
+void AutoScriptModule::land()
+{
+    SIMULATE_ACTION(sim, "Landing", ssui)
+
+    handle_status(drone_land(d));
+}
+
+void AutoScriptModule::move(float pitch, float roll, float gaz, float yaw)
+{
+    if(sim)
+    {
+        std::stringstream description;
+        description << "Moving with pitch = " << pitch << "; roll = " << roll << "; gaz = " << gaz << " and yaw = " << yaw << ".";
+
+        SIMULATE_ACTION(sim, description.str(), ssui)
+    }
+
+    handle_status(drone_setAttitude(d, pitch, roll, yaw, gaz));
+}
+
+void AutoScriptModule::move_rel(float pitch, float roll, float gaz, float yaw)
+{
+    if(sim)
+    {
+        std::stringstream description;
+        description << "Moving with pitch = " << pitch << "; roll = " << roll << "; gaz = " << gaz << " and yaw = " << yaw << ".";
+
+        SIMULATE_ACTION(sim, description.str(), ssui)
+    }
+
+    handle_status(drone_setAttitudeRel(d, pitch, roll, yaw, gaz));
+}
+
+void AutoScriptModule::hover()
+{
+    SIMULATE_ACTION(sim, "Hovering", ssui)
+
+    handle_status(drone_hover(d));
+}
+
+void AutoScriptModule::flip(std::string direction)
+{
+    SIMULATE_ACTION(sim, "Flipping", ssui)
+
+    //TODO: this
+    /*
+    if(direction == "AHEAD")
+    {
+        return d->drone_flip(ardrone::flip::AHEAD);
+    }
+    else if(direction == "BEHIND")
+    {
+        return d->drone_flip(ardrone::flip::BEHIND);
+    }
+    else if(direction == "LEFT")
+    {
+        return d->drone_flip(ardrone::flip::LEFT);
+    }
+    else if(direction == "RIGHT")
+    {
+        return d->drone_flip(ardrone::flip::RIGHT);
+    }
+    else
+    {
+        return false;
+    }*/
+}
+
+boost::python::dict AutoScriptModule::navdata()
+{
+    boost::python::dict navdata;
+
+    if(d == nullptr)
+    {
+        return navdata;
+    }
+
+    std::shared_ptr<const drone::navdata> data = d->getNavdata();
+
+    if(data == nullptr)
+    {
+        return navdata;
+    }
+
+    navdata["flying"] = data->flying;
+    navdata["batterystatus"] = data->batterystatus;
+    navdata["linkquality"] = data->linkquality;
+    navdata["altitude"] = data->altitude;
+    navdata["attitude"] = boost::python::make_tuple(data->attitude[0], data->attitude[1], data->attitude[2]);
+    navdata["linearvelocity"] = boost::python::make_tuple(data->linearvelocity[0], data->linearvelocity[1], data->linearvelocity[2]);
+
+    return navdata;
+}
+
+boost::python::dict AutoScriptModule::status()
+{
+    boost::python::dict status;
+
+    status["connected"] = d->isConnected();
+    status["armed"] = d->isArmed();
+    status["flying"] = d->isFlying();
+
+    return status;
+}
+
+void AutoScriptModule::flattrim()
+{
+    drone::error status = d->addCommand(drone::commands::fttrim());
+    handle_status(status);
+}
+
+void AutoScriptModule::startrecording()
+{
+    //TODO: this
+}
+
+void AutoScriptModule::stoprecording()
+{
+    //TODO: this
+}
+
+void AutoScriptModule::changeview(std::string view)
+{
+    //TODO: this
+}
+
+void AutoScriptModule::takepicture()
+{
+    //TODO: this
+}
+
+/*
 //////////// CONTROL FUNCTIONS ////////////
 
 Control::Control(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimulationUI *simulationUI)
@@ -41,9 +194,9 @@ Control::Control(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimul
 	ssui = simulationUI;
 }
 
-void Control::takeOff()
+void Control::takeoff()
 {
-	ASSERT_ARDRONE(d)
+	ASSERT_DRONE(d)
 	SIMULATE_ACTION(sim, "Taking off", ssui)
 
 	handle_status(drone_takeOff(d));
@@ -51,7 +204,7 @@ void Control::takeOff()
 
 void Control::land()
 {
-	ASSERT_ARDRONE(d)
+	ASSERT_DRONE(d)
 	SIMULATE_ACTION(sim, "Landing", ssui)
 
     handle_status(drone_land(d));
@@ -59,7 +212,7 @@ void Control::land()
 
 void Control::move(float pitch, float roll, float gaz, float yaw)
 {
-	ASSERT_ARDRONE(d)
+	ASSERT_DRONE(d)
 
 	if(sim)
 	{
@@ -71,10 +224,10 @@ void Control::move(float pitch, float roll, float gaz, float yaw)
 
     handle_status(drone_setAttitudeRel(d, pitch, roll, yaw, gaz));
 }
-
+*/
 /*bool Control::move_distance(float pitch, float roll, float gaz, float yaw, float centimeters)
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 
 	if(sim)
 	{
@@ -169,7 +322,7 @@ void Control::move(float pitch, float roll, float gaz, float yaw)
 
 bool Control::move_time(float pitch, float roll, float gaz, float yaw, int milliseconds)
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 
 	if(sim)
 	{
@@ -202,7 +355,7 @@ bool Control::move_time(float pitch, float roll, float gaz, float yaw, int milli
 
 bool Control::rotate(float speed, float degs)
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 
 	if(sim)
 	{
@@ -258,10 +411,10 @@ bool Control::rotate(float speed, float degs)
 	return complete;
 	return false;
 }*/
-
+/*
 void Control::hover()
 {
-	ASSERT_ARDRONE(d)
+	ASSERT_DRONE(d)
 	SIMULATE_ACTION(sim, "Hovering", ssui)
 
 	handle_status(drone_hover(d));
@@ -269,11 +422,11 @@ void Control::hover()
 
 void Control::flip(std::string direction)
 {
-	ASSERT_ARDRONE(d)
+	ASSERT_DRONE(d)
 	SIMULATE_ACTION(sim, "Flipping", ssui)
 
 	//TODO: this
-	/*
+	*//*
 	if(direction == "AHEAD")
 	{
 		return d->drone_flip(ardrone::flip::AHEAD);
@@ -294,7 +447,7 @@ void Control::flip(std::string direction)
 	{
 		return false;
 	}*/
-}
+/*}
 
 //////////// SENSOR DATA RETREIVAL FUNCTIONS ////////////
 
@@ -305,9 +458,35 @@ Sensors::Sensors(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimul
 	ssui = simulationUI;
 }
 
+boost::python::dict Sensors::navdata()
+{
+	boost::python::dict navdata;
+
+	if(d == nullptr)
+	{
+		return navdata;
+	}
+
+	std::shared_ptr<const drone::navdata> data = d->getNavdata();
+
+    if(data == nullptr)
+    {
+        return navdata;
+    }
+
+	navdata["flying"] = data->flying;
+	navdata["batterystatus"] = data->batterystatus;
+	navdata["linkquality"] = data->linkquality;
+	navdata["altitude"] = data->altitude;
+    navdata["attitude"] = boost::python::make_tuple(data->attitude[0], data->attitude[1], data->attitude[2]);
+    navdata["linearvelocity"] = boost::python::make_tuple(data->linearvelocity[0], data->linearvelocity[1], data->linearvelocity[2]);
+
+	return navdata;
+}*/
+/*
 float Sensors::getAltitude()
 {
-	ASSERT_ARDRONE_F(d)
+	ASSERT_DRONE_F(d)
 	SIMULATE_INPUT_F(sim, "Please enter a simulated value for the altitude of the drone", "m", ssui)
 
     std::shared_ptr<const drone::navdata> data = d->getNavdata();
@@ -323,7 +502,7 @@ float Sensors::getAltitude()
 
 float Sensors::getOrientation(std::string axis)
 {
-	ASSERT_ARDRONE_F(d)
+	ASSERT_DRONE_F(d)
 	SIMULATE_INPUT_F(sim, std::string("Please enter a simulated angle for the drone's ").append(axis.append(" axis (-180 to +180)")), "degree", ssui)
 
     std::shared_ptr<const drone::navdata> data = d->getNavdata();
@@ -352,7 +531,7 @@ float Sensors::getOrientation(std::string axis)
 
 float Sensors::getOrientation360(std::string axis, bool clockwise)
 {
-	ASSERT_ARDRONE_F(d)
+	ASSERT_DRONE_F(d)
 	SIMULATE_INPUT_F(sim, std::string("Please enter a simulated angle for the drone's ").append(axis.append(" axis (0 to 360)")), "degree", ssui)
 
 	float orientation = getOrientation(axis);
@@ -381,11 +560,11 @@ float Sensors::getOrientation360(std::string axis, bool clockwise)
 
 float Sensors::getAcceleration(std::string axis)
 {
-	ASSERT_ARDRONE_F(d)
+	ASSERT_DRONE_F(d)
 	SIMULATE_INPUT_F(sim, std::string("Please enter a simulated value for the acceleration on the drone's ").append(axis.append(" axis")), "g", ssui)
 
 	//TODO: this
-	/*
+
 	if(axis == "X")
 	{
 		return d->drone_getAcceleration().ax;
@@ -399,14 +578,14 @@ float Sensors::getAcceleration(std::string axis)
 		return d->drone_getAcceleration().az;
 	}
 	else
-	{*/
+	{
 		return -1;
-	//}
+	}
 }
 
 float Sensors::getLinearVelocity(std::string axis)
 {
-	ASSERT_ARDRONE_F(d)
+	ASSERT_DRONE_F(d)
 	SIMULATE_INPUT_F(sim, std::string("Please enter a simulated linear velocity on the drone's ").append(axis.append(" axis")), "m/s", ssui)
 
     std::shared_ptr<const drone::navdata> data = d->getNavdata();
@@ -435,7 +614,7 @@ float Sensors::getLinearVelocity(std::string axis)
 
 float Sensors::getBatteryLevel()
 {
-	ASSERT_ARDRONE_F(d)
+	ASSERT_DRONE_F(d)
 	SIMULATE_INPUT_F(sim, "Please enter a simulated value for the battery level of the drone", "%", ssui)
 
     std::shared_ptr<const drone::navdata> data = d->getNavdata();
@@ -445,8 +624,8 @@ float Sensors::getBatteryLevel()
     }
 
     return data->batterystatus;
-}
-
+}*/
+/*
 //////////// UTILITY FUNCTIONS ////////////
 
 Util::Util(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimulationUI *simulationUI)
@@ -458,7 +637,7 @@ Util::Util(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimulationU
 
 bool Util::isConnected()
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_INPUT_B(sim, "Is the drone connected to the computer?", ssui)
 
 	return d->isConnected();
@@ -466,7 +645,7 @@ bool Util::isConnected()
 
 bool Util::isArmed()
 {
-    ASSERT_ARDRONE_B(d)
+    ASSERT_DRONE_B(d)
     SIMULATE_INPUT_B(sim, "Is the drone armed?", ssui)
 
     return d->isArmed();
@@ -474,7 +653,7 @@ bool Util::isArmed()
 
 bool Util::isFlying()
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_INPUT_B(sim, "Is the drone flying?", ssui)
 
 	std::shared_ptr<const drone::navdata> data = d->getNavdata();
@@ -490,7 +669,7 @@ bool Util::isFlying()
 
 bool Util::startRecording()
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Started recording", ssui)
 
 	//TODO: return d->drone_startRecording();
@@ -499,7 +678,7 @@ bool Util::startRecording()
 
 bool Util::stopRecording()
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Stopped recording", ssui)
 
 	//TODO: return d->drone_stopRecording();
@@ -508,7 +687,7 @@ bool Util::stopRecording()
 
 bool Util::flatTrim()
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Calibrating gyroscope", ssui)
 
 	return drone_flattrim(d);
@@ -516,7 +695,7 @@ bool Util::flatTrim()
 
 bool Util::calibrateMagnetometer()
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Calibrating magnetometer", ssui)
 
 	//TODO: return d->drone_calibmagneto();
@@ -525,11 +704,11 @@ bool Util::calibrateMagnetometer()
 
 bool Util::changeView(std::string view)
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_ACTION_B(sim, std::string("Changing camera to ").append(view), ssui)
 
 	//TODO: this
-	/*
+
 	if(view == "FRONT")
 	{
 		return d->drone_changeView(ardrone::camera::FRONT);
@@ -539,14 +718,14 @@ bool Util::changeView(std::string view)
 		return d->drone_changeView(ardrone::camera::BOTTOM);
 	}
 	else
-	{*/
+	{
 		return false;
 	//}
 }
 
 bool Util::savePicture(std::string path)
 {
-	ASSERT_ARDRONE_B(d)
+	ASSERT_DRONE_B(d)
 	SIMULATE_ACTION_B(sim, "Took picture", ssui)
 
 	//TODO: return d->drone_takePicture(path);
@@ -561,3 +740,4 @@ HWExt::HWExt(std::shared_ptr<Drone> drone, bool simulationMode, IScriptSimulatio
 	sim = simulationMode;
 	ssui = simulationUI;
 }
+*/

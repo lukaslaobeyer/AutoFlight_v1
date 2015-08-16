@@ -13,61 +13,30 @@ namespace py = boost::python;
 
 BOOST_PYTHON_MODULE(autoscript)
 {
-	py::class_<Control>("Control")
-				.def("takeOff", &Control::takeOff)
-				.def("land", &Control::land)
-				.def("move", &Control::move)
-				/*.def("move_time", &Control::move_time)
-				.def("move_distance", &Control::move_distance)
-				.def("forward", &Control::forward)
-				.def("forward_time", &Control::forward_time)
-				.def("forward_distance", &Control::forward_distance)
-				.def("left", &Control::left)
-				.def("left_time", &Control::left_time)
-				.def("left_distance", &Control::left_distance)
-				.def("right", &Control::left)
-				.def("right_time", &Control::right_time)
-				.def("right_distance", &Control::right_distance)
-				.def("up", &Control::up)
-				.def("up_time", &Control::up_time)
-				.def("up_distance", &Control::up_distance)
-				.def("down", &Control::down)
-				.def("down_time", &Control::down_time)
-				.def("down_distance", &Control::down_distance)
-				.def("backward", &Control::backward)
-				.def("backward_time", &Control::backward_time)
-				.def("backward_distance", &Control::backward_distance)
-				.def("rotate", &Control::rotate)*/
-				.def("hover", &Control::hover)
-				.def("flip", &Control::flip);
-
-	py::class_<Sensors>("Sensors")
-				.def("getAltitude", &Sensors::getAltitude)
-				.def("getOrientation", &Sensors::getOrientation)
-				.def("getOrientation360", &Sensors::getOrientation360)
-				.def("getAcceleration", &Sensors::getAcceleration)
-				.def("getLinearVelocity", &Sensors::getLinearVelocity)
-				.def("getBatteryLevel", &Sensors::getBatteryLevel);
-
-	py::class_<Util>("Util")
-				.def("isConnected", &Util::isConnected)
-				.def("isFlying", &Util::isFlying)
-                .def("isArmed", &Util::isArmed)
-				.def("stopRecording", &Util::stopRecording)
-				.def("startRecording", &Util::startRecording)
-				.def("flatTrim", &Util::flatTrim)
-				.def("calibrateMagnetometer", &Util::calibrateMagnetometer)
-				.def("changeView", &Util::changeView);
+	py::class_<AutoScriptModule>("AutoScriptControl")
+				.def("takeoff", &AutoScriptModule::takeoff)
+				.def("land", &AutoScriptModule::land)
+                .def("move", &AutoScriptModule::move)
+				.def("move_rel", &AutoScriptModule::move_rel)
+                .def("hover", &AutoScriptModule::hover)
+                .def("flip", &AutoScriptModule::flip)
+                .def("navdata", &AutoScriptModule::navdata)
+                .def("status", &AutoScriptModule::status)
+                .def("flattrim", &AutoScriptModule::flattrim)
+                .def("startrecording", &AutoScriptModule::startrecording)
+                .def("stoprecording", &AutoScriptModule::stoprecording)
+                .def("changeview", &AutoScriptModule::changeview)
+                .def("takepicture", &AutoScriptModule::takepicture);
 
 	py::class_<ImgProc>("ImgProc")
-				.def("getLatestFrame", &ImgProc::getLatestFrame)
-                .def("getFrameAge", &ImgProc::getFrameAge)
-				.def("showFrame", &ImgProc::showFrame)
-                .def("startTagDetector", &ImgProc::startTagDetector)
-                .def("stopTagDetector", &ImgProc::stopTagDetector)
-                .def("setTagFamily", &ImgProc::setTagFamily)
-                .def("setTagROI", &ImgProc::setTagROI)
-                .def("getTagDetections", &ImgProc::getTagDetections);
+				.def("latest_frame", &ImgProc::getLatestFrame)
+                .def("frame_age", &ImgProc::getFrameAge)
+				.def("show_frame", &ImgProc::showFrame)
+                .def("start_tag_detector", &ImgProc::startTagDetector)
+                .def("stop_tag_detector", &ImgProc::stopTagDetector)
+                .def("set_tag_family", &ImgProc::setTagFamily)
+                .def("set_tag_roi", &ImgProc::setTagROI)
+                .def("tag_detections", &ImgProc::getTagDetections);
 }
 
 BOOST_PYTHON_MODULE(autoscriptioredirector)
@@ -107,7 +76,7 @@ shared_ptr<FPVDrone> ASEngine::drone()
 vector<string> ASEngine::getAvailableFunctions()
 {
 	vector<string> funcs = {
-			"control.takeOff()",
+			/*"control.takeOff()",
 			"control.land()",
 			"control.move(pitch, roll, gaz, yaw)",
 			"control.move_time(pitch, roll, gaz, yaw, milliseconds)",
@@ -158,7 +127,7 @@ vector<string> ASEngine::getAvailableFunctions()
             "imgproc.stopTagDetector()",
 			"imgproc.setTagFamily(family)",
             "imgproc.setTagROI(x, y, width, height)",
-            "imgproc.getTagDetections()"
+            "imgproc.getTagDetections()"*/
 	};
 
 	return funcs;
@@ -183,11 +152,8 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 
     PyEval_ReInitThreads();
 
-	_control = new Control(_drone, simulate, ssui);
-	_sensors = new Sensors(_drone, simulate, ssui);
-	_util = new Util(_drone, simulate, ssui);
-	_imgproc = new ImgProc(_drone, iv, simulate, ssui);
-	_hwext = new HWExt(_drone, simulate, ssui);
+    _asmodule = new AutoScriptModule(_drone, simulate, ssui);
+    _imgproc = new ImgProc(_drone, iv, simulate, ssui);
 
 	bool initialized = false;
 	bool error = false;
@@ -209,9 +175,7 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
     py::object autoscript_module((py::handle<>(PyImport_ImportModule("autoscript"))));
     main_namespace["autoscript"] = autoscript_module;
 
-    main_namespace["control"] = py::ptr(_control);
-    main_namespace["sensors"] = py::ptr(_sensors);
-    main_namespace["util"] = py::ptr(_util);
+    main_namespace["basicctl"] = py::ptr(_asmodule);
     main_namespace["imgproc"] = py::ptr(_imgproc);
 
 	try
@@ -251,16 +215,10 @@ bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui
 
     _imgproc->stopTagDetector();
 
-	delete _control;
-	delete _sensors;
-	delete _util;
-	delete _hwext;
 	delete _imgproc;
-	_control = NULL;
-	_sensors = NULL;
-	_util = NULL;
-	_hwext = NULL;
-	_imgproc = NULL;
+    delete _asmodule;
+	_imgproc = nullptr;
+    _asmodule = nullptr;
 
 	PyGILState_Release(state);
 
@@ -275,30 +233,15 @@ int pyQuit(void *) // Gets injected into the script by stopRunningScript
 
 void ASEngine::stopRunningScript()
 {
-	if(_control != NULL)
-	{
-		_control->abortFlag = true;
-	}
-
-	if(_sensors != NULL)
-	{
-		_sensors->abortFlag = true;
-	}
-
-	if(_util != NULL)
-	{
-		_util->abortFlag = true;
-	}
-
-	if(_imgproc != NULL)
+	if(_imgproc != nullptr)
 	{
 		_imgproc->abortFlag = true;
 	}
 
-	if(_hwext != NULL)
-	{
-		_hwext->abortFlag = true;
-	}
+    if(_asmodule != nullptr)
+    {
+        _asmodule->abortFlag = true;
+    }
 
 	PyGILState_STATE state = PyGILState_Ensure();
 	Py_AddPendingCall(&pyQuit, NULL);

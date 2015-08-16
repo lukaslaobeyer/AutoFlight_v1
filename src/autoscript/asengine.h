@@ -39,11 +39,8 @@ class ASEngine
 
 		std::shared_ptr<FPVDrone> _drone;
 
-		Sensors *_sensors = NULL;
-		Control *_control = NULL;
-		Util *_util = NULL;
-		ImgProc *_imgproc = NULL;
-		HWExt *_hwext = NULL;
+		AutoScriptModule *_asmodule = nullptr;
+		ImgProc *_imgproc = nullptr;
 };
 
 #endif

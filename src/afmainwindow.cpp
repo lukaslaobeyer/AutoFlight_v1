@@ -541,10 +541,7 @@ void AFMainWindow::showDroneConfigDialog()
 
 	dialog->exec();
 
-	if(dialog)
-	{
-		delete dialog;
-	}
+	delete dialog;
 }
 
 void AFMainWindow::launchBebopVideoSettings()
@@ -564,10 +561,7 @@ void AFMainWindow::launchBebopVideoSettings()
 
     dialog->exec();
 
-    if(dialog)
-    {
-        delete dialog;
-    }
+    delete dialog;
 }
 
 void AFMainWindow::showControlConfigDialog()
