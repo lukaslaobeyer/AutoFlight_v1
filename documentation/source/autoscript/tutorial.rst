@@ -8,7 +8,7 @@ AutoScript Scripting Environment
 ================================
 
 First, take a look at the user interface for writing scripts. In the center there is a text area with line numbering and syntax highliting. On the top there's a main menu containing options to save/open scripts and execute them as well as to open the documentation.
-There are shortcuts for these actions on the bottom bar. Note that on this bar there's also a toggle button to enable the "land on error" behavior, which will automatically make the AR.Drone land when an error in the script is occurrs.
+There are shortcuts for these actions on the bottom bar. Note that on this bar there's also a toggle button to enable the "land on error" behavior, which will automatically make the drone land when an error in the script is occurrs.
 Also, apart from executing the scripts you can also simulate them. When simulating a script no commands will be sent to the drone. Instead, what would happen gets printed in the script output and the program needs the user to enter simulated sensor values. This feature is useful for testing your scripts and making sure everything works as expected.
 
 .. note:: When editing a script you can always press ``F1`` to open the documentation. If there's an AutoScript command in the current line, the description of that command will be opened automatically. (Try it!)
@@ -29,7 +29,7 @@ Then you can use the sleep function with the time you want to sleep as parameter
 
    time.sleep(6)
 
-The above function waits 6 seconds before letting the script contine. This will be enough time for the AR.Drone to take off. The rest of the time it will simply stay in the air. Now it's time to land the drone. The function for doing that is ::
+The above function waits 6 seconds before letting the script contine. This will be enough time for the drone to take off. The rest of the time it will simply stay in the air. Now it's time to land the drone. The function for doing that is ::
 
    basicctl.land()
 

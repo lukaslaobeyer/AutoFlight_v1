@@ -4,6 +4,11 @@ Basic AutoScript Functions
 
 AutoScript has some basic functions for accessing drone navigation data and controlling flight. On this page, these built-in functions are documented.
 
+.. warning::
+
+   In AutoFlight 1.0, the AutoScript API has changed and is not compatible with earlier versions of AutoFlight.
+
+
 They are divided into two modules named ``basicctl`` and ``imgproc``. The ``imgproc`` module contains functions for retrieving and processing images, while the ``basicctl`` module is used for most other simple commands.
 
 For more advanced and high-level commands, please use the ``dronectl`` package.
@@ -25,7 +30,7 @@ Basic control and navigation data retrieval
 
    Moves the drone by setting the pitch and roll angles as well as vertical and rotational speed.
 
-   .. warning:: This function will cause the drone to move with the specified parameters for an infinite amount of time. You will need to call the ``hover()`` command to stop it.
+   .. note:: This function will cause the drone to move with the specified parameters for an infinite amount of time. You will need to call the ``hover()`` command to stop it.
 
    :param pitch: Pitch angle in radians (positive is backward, negative is forward)
    :param roll: Roll angle in radians (positive is right, negative is left)
@@ -37,7 +42,7 @@ Basic control and navigation data retrieval
 
    Moves the drone. The parameters are multipliers of the allowed maximum, and have to be in the range from -1.0 (corresponding to the maximum tilt in one direction) to 1.0 (corresponding to the maximum in the other direction).
 
-   .. warning:: This function will cause the drone to move with the specified parameters for an infinite amount of time. You will need to call the ``hover()`` command to stop it.
+   .. note:: This function will cause the drone to move with the specified parameters for an infinite amount of time. You will need to call the ``hover()`` command to stop it.
 
    :param pitch: Pitch angle (**-1.0**: full speed in **forward** direction; **1.0**: full speed in **backward** direction)
    :param roll: Roll angle (**-1.0**: full angle to **left** hand side; **1.0**: full angle to **right** hand side)
@@ -68,7 +73,7 @@ Basic control and navigation data retrieval
 
    Retrieve the drone's status.
 
-   :returns: A ``dict`` containing three keys: ``connected``, ``armed`` and ``flying``.
+   :returns: A ``dict`` containing three keys: ``'connected'``, ``'armed'`` and ``'flying'``.
 
 
 Image Processing
@@ -76,7 +81,7 @@ Image Processing
 
 .. warning::
 
-    **Using OpenCV's built in GUI functionality is not possible in AutoFlight.** To display an image, you should always use ``imgproc.showFrame(img)`` and never OpenCV's ``imshow()`` or similar.
+    **Using OpenCV's built in GUI functionality is not (yet) possible in AutoFlight.** To display an image, you should always use ``imgproc.showFrame(img)`` and never OpenCV's ``imshow()`` or similar.
 
 
 .. note::

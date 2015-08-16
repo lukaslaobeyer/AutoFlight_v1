@@ -21,7 +21,7 @@ To start flying your drone, make sure you are already connected to it via WiFi, 
 
 .. note::
 
-	*AR.Drone 2.0 only:* Please make sure you are not connected to any other network besides your AR.Drone 2.0. With the Bebop drone this should not be a problem.
+	Please make sure you are not connected to any other network besides your drone's.
 
 Head-Up Display
 ---------------
@@ -110,6 +110,8 @@ Drone configuration
 
 Go into the :menuselection:`Drone --> Flight Settings` menu to change the on-board flight parameters of the drone (max. roll/pitch angles, max. height, etc.).
 
+For the Bebop drone, you can also configure the video/picture settings in the :menuselection:`Drone --> Video/picture settings` menu.
+
 MAVLink?
 --------
 
@@ -120,8 +122,3 @@ AutoFlight will automatically relay the Bebop's navigation data, converting back
 .. note::
 
 	This feature is still under heavy development. Right now, AutoFlight only sends MAVLink packets and ignores any requests, so Waypoints and other commands that will make this feature useful in the future are **not implemented yet**.
-
-Something does not work / I found a bug
-=======================================
-
-Please create an issue on my `JIRA project tracker <https://lbpclabs.atlassian.net>`_. You just will have to sign up. Thank you!
