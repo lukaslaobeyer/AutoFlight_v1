@@ -48,8 +48,9 @@ If you don't have a controller, you can fly with your keyboard, too. The next se
 
 .. note::
 
+    I have successfully used the XBox One controller, the Logitech Extreme 3D Pro joystick and several generic, unbranded controllers.
 	My gamepad and joysticks work flawlessy, but if your do not, I've heard from users that `MotioninJoy <http://www.motioninjoy.com/>`_ can solve the problems.
-	I have successfully used the XBox One controller, the Logitech Extreme 3D Pro joystick and several generic, unbranded controllers.
+
 
 Flying with the Keyboard
 ++++++++++++++++++++++++
