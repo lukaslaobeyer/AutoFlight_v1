@@ -6,6 +6,7 @@
 #include "opencv/asmodules_opencv.h"
 #include <string>
 #include <boost/filesystem.hpp>
+#include <boost/python/stl_iterator.hpp>
 #include "asioredirector.h"
 
 using namespace std;
@@ -75,59 +76,30 @@ shared_ptr<FPVDrone> ASEngine::drone()
 
 vector<string> ASEngine::getAvailableFunctions()
 {
+    // TODO: do not hardcode these
+
 	vector<string> funcs = {
-			/*"control.takeOff()",
-			"control.land()",
-			"control.move(pitch, roll, gaz, yaw)",
-			"control.move_time(pitch, roll, gaz, yaw, milliseconds)",
-			"control.move_distance(pitch, roll, gaz, yaw, centimeters)",
-			"control.forward(speed)",
-			"control.forward_time(speed, milliseconds)",
-			"control.forward_distance(speed, centimeters)",
-			"control.backward(speed)",
-			"control.backward_time(speed, milliseconds)",
-			"control.backward_distance(speed, centimeters)",
-			"control.left(speed)",
-			"control.left_time(speed, milliseconds)",
-			"control.left_distance(speed, centimeters)",
-			"control.right(speed)",
-			"control.right_time(speed, milliseconds)",
-			"control.right_distance(speed, centimeters)",
-			"control.up(speed)",
-			"control.up_time(speed, milliseconds)",
-			"control.up_distance(speed, centimeters)",
-			"control.down(speed)",
-			"control.down_time(speed, milliseconds)",
-			"control.down_distance(speed, centimeters)",
-			"control.rotate(speed, degrees)",
-			"control.hover()",
-			"control.flip(direction)",
-
-			"sensors.getAltitude()",
-			"sensors.getOrientation(axis)",
-			"sensors.getOrientation360(axis)",
-			"sensors.getAcceleration(axis)",
-			"sensors.getBatteryLevel()",
-			"sensors.getLinearVelocity(axis)",
-
-			"util.isConnected()",
-			"util.isFlying()",
-			"util.isArmed()",
-			"util.startRecording()",
-			"util.stopRecording()",
-			"util.flatTrim()",
-			"util.calibrateMagnetometer()",
-			"util.changeView(camera)",
-			"util.savePicture(path)",
-
-			"imgproc.getLatestFrame()",
-            "imgproc.getFrameAge()",
-			"imgproc.showFrame(frame)",
-            "imgproc.startTagDetector()",
-            "imgproc.stopTagDetector()",
-			"imgproc.setTagFamily(family)",
-            "imgproc.setTagROI(x, y, width, height)",
-            "imgproc.getTagDetections()"*/
+            "basicctl.changeview",
+            "basicctl.flattrim",
+            "basicctl.flip",
+            "basicctl.hover",
+            "basicctl.land",
+            "basicctl.move",
+            "basicctl.move_rel",
+            "basicctl.navdata",
+            "basicctl.startrecording",
+            "basicctl.status",
+            "basicctl.stoprecording",
+            "basicctl.takeoff",
+            "basicctl.takepicture",
+            "imgproc.frame_age",
+            "imgproc.latest_frame",
+            "imgproc.set_tag_family",
+            "imgproc.set_tag_roi",
+            "imgproc.show_frame",
+            "imgproc.start_tag_detector",
+            "imgproc.stop_tag_detector",
+            "imgproc.tag_detections"
 	};
 
 	return funcs;
