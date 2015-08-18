@@ -59,7 +59,7 @@ Basic control and navigation data retrieval
 
    Sends the flip command to the drone.
 
-   :param direction: ``"AHEAD"``, ``"BEHIND"``, ``"LEFT"`` or ``"RIGHT"``
+   :param direction: ``"FRONT"``, ``"BACK"``, ``"LEFT"`` or ``"RIGHT"``
 
 
 .. function:: basicctl.navdata()
@@ -74,6 +74,41 @@ Basic control and navigation data retrieval
    Retrieve the drone's status.
 
    :returns: A ``dict`` containing three keys: ``'connected'``, ``'armed'`` and ``'flying'``.
+
+
+.. function:: basicctl.flattrim()
+
+   Perform a "flat trim".
+
+
+.. function:: basicctl.set_view(tilt, pan)
+
+   On the Bebop drone, this sets the direction of the digital gimbal.
+
+   :param tilt: Tilt between -100 and 100.
+   :param pan: Pan between -100 and 100.
+
+
+.. function:: basicctl.startrecording()
+
+   Start recording.
+
+
+.. function:: basicctl.stoprecording()
+
+   Stop recording.
+
+
+.. function:: basicctl.switchview(view)
+
+   Switch between front and bottom view. On the AR.Drone 2.0 this switches between the front and bottom camera. On the Bebop this changes the view of the digital gimbal.
+
+   :param view: "TOGGLE" to toggle between front/bottom, "FRONT" to look front, "BOTTOM" to look down.
+
+
+.. function:: basicctl.takepicture()
+
+   Take a picture.
 
 
 Image Processing

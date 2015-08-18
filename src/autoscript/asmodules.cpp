@@ -24,6 +24,14 @@ void handle_status(drone::error status)
 	{
 		error = "not connected to drone";
 	}
+    else if(status == drone::NOT_SUPPORTED)
+    {
+        error = "action not supported for this drone";
+    }
+    else if(status == drone::ERR_UNKNOWN)
+    {
+        error = "unknown error";
+    }
 	PyErr_SetString(PyExc_RuntimeError, error.c_str());
 	boost::python::throw_error_already_set();
 }
@@ -93,28 +101,8 @@ void AutoScriptModule::flip(std::string direction)
 {
     SIMULATE_ACTION(sim, "Flipping", ssui)
 
-    //TODO: this
-    /*
-    if(direction == "AHEAD")
-    {
-        return d->drone_flip(ardrone::flip::AHEAD);
-    }
-    else if(direction == "BEHIND")
-    {
-        return d->drone_flip(ardrone::flip::BEHIND);
-    }
-    else if(direction == "LEFT")
-    {
-        return d->drone_flip(ardrone::flip::LEFT);
-    }
-    else if(direction == "RIGHT")
-    {
-        return d->drone_flip(ardrone::flip::RIGHT);
-    }
-    else
-    {
-        return false;
-    }*/
+    drone::error status = drone_flip(d, direction);
+    handle_status(status);
 }
 
 boost::python::dict AutoScriptModule::navdata()
@@ -162,20 +150,30 @@ void AutoScriptModule::flattrim()
 
 void AutoScriptModule::startrecording()
 {
-    //TODO: this
+    drone::error status = drone_startRecording(d);
+    handle_status(status);
 }
 
 void AutoScriptModule::stoprecording()
 {
-    //TODO: this
+    drone::error status = drone_stopRecording(d);
+    handle_status(status);
 }
 
-void AutoScriptModule::changeview(std::string view)
+void AutoScriptModule::switchview(std::string view)
 {
-    //TODO: this
+    drone::error status = drone_switchview(d, view);
+    handle_status(status);
+}
+
+void AutoScriptModule::set_view(float tilt, float pan)
+{
+    drone::error status = drone_setCameraOrientation(d, tilt, pan);
+    handle_status(status);
 }
 
 void AutoScriptModule::takepicture()
 {
-    //TODO: this
+    drone::error status = drone_takePicture(d);
+    handle_status(status);
 }

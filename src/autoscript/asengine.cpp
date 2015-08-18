@@ -24,9 +24,10 @@ BOOST_PYTHON_MODULE(autoscript)
                 .def("navdata", &AutoScriptModule::navdata)
                 .def("status", &AutoScriptModule::status)
                 .def("flattrim", &AutoScriptModule::flattrim)
+			    .def("set_view", &AutoScriptModule::set_view)
                 .def("startrecording", &AutoScriptModule::startrecording)
                 .def("stoprecording", &AutoScriptModule::stoprecording)
-                .def("changeview", &AutoScriptModule::changeview)
+                .def("switchview", &AutoScriptModule::switchview)
                 .def("takepicture", &AutoScriptModule::takepicture);
 
 	py::class_<ImgProc>("ImgProc")
@@ -79,7 +80,6 @@ vector<string> ASEngine::getAvailableFunctions()
     // TODO: do not hardcode these
 
 	vector<string> funcs = {
-            "basicctl.changeview",
             "basicctl.flattrim",
             "basicctl.flip",
             "basicctl.hover",
@@ -87,9 +87,11 @@ vector<string> ASEngine::getAvailableFunctions()
             "basicctl.move",
             "basicctl.move_rel",
             "basicctl.navdata",
+			"basicctl.set_view",
             "basicctl.startrecording",
             "basicctl.status",
             "basicctl.stoprecording",
+			"basicctl.switchview",
             "basicctl.takeoff",
             "basicctl.takepicture",
             "imgproc.frame_age",
@@ -209,11 +211,6 @@ void ASEngine::stopRunningScript()
 	{
 		_imgproc->abortFlag = true;
 	}
-
-    if(_asmodule != nullptr)
-    {
-        _asmodule->abortFlag = true;
-    }
 
 	PyGILState_STATE state = PyGILState_Ensure();
 	Py_AddPendingCall(&pyQuit, NULL);

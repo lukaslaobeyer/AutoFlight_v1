@@ -634,15 +634,9 @@ void ManualControl::perform_flip()
     {
         _aw->hideMessages();
         _aw->showMessage(tr("Performing flip!").toStdString());
-        if(_af->ardrone2())
-        {
-            drone_flip(_af->ardrone2());
-        }
-        else if(_af->bebop())
-        {
-            drone_flip(_af->bebop());
-        }
-        else
+		drone::error status = drone_flip(_af->drone());
+
+        if(status == drone::NOT_SUPPORTED)
         {
             _aw->showMessage(tr("Flip for this drone not supported").toStdString());
         }

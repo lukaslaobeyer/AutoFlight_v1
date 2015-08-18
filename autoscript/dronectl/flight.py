@@ -11,8 +11,9 @@ def move_distance(pitch, roll, gaz, yaw, distance):
     :param distance: Distance to move in meters.
     :return: None
     """
+    pass
 
-	pass
+
 
 
 
