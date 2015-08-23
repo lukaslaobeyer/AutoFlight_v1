@@ -29,7 +29,7 @@ class ASEngine
 
 		std::vector<std::string> getAvailableFunctions();
 
-		bool runScript(std::string script, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, std::function<void(const std::string &)> outputCallback);
+		bool runScript(bool file, std::string script, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, std::function<void(const std::string &)> outputCallback);
 		void stopRunningScript();
 		std::string getPythonVersion();
 

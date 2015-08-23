@@ -507,7 +507,19 @@ void ASMainWindow::runScript(bool simulate)
 
 	function<void(string)> callback = std::bind(&ASMainWindow::handleScriptOutput, this, std::placeholders::_1);
 
-	if(!_ase->runScript(_editor->text().toStdString(), simulate, this, _iv, &exception, callback))
+	bool exception_occurred = true;
+    if(!fileAlreadySavedAs)
+    {
+        exception_occurred = !_ase->runScript(false, _editor->text().toStdString(), simulate, this, _iv, &exception,
+                callback);
+    }
+    else
+    {
+        saveFile();
+        exception_occurred = !_ase->runScript(true, fileSavedAs, simulate, this, _iv, &exception, callback);
+    }
+
+	if(exception_occurred)
 	{
 		Q_EMIT scriptOutputAvailable(QString::fromStdString(exception.message));
 		Q_EMIT highlightErrorSignal(exception.linenumber);

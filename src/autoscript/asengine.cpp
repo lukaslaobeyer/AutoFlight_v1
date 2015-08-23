@@ -5,6 +5,7 @@
 
 #include "opencv/asmodules_opencv.h"
 #include <string>
+#include <boost/locale/encoding_utf.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/python/stl_iterator.hpp>
 #include "asioredirector.h"
@@ -114,86 +115,104 @@ string ASEngine::getPythonVersion()
 	return v.substr(0, v.find_first_of(' '));
 }
 
-bool ASEngine::runScript(string script, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, function<void(const string &)> outputCallback)
+bool ASEngine::runScript(bool file, string script, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, function<void(const string &)> outputCallback)
 {
-	if(simulate && ssui == NULL)
-	{
-		// Make sure nothing is trying to simulate without providing a IScriptSimulationUI
-		return false;
-	}
+    if (simulate && ssui==NULL)
+    {
+        // Make sure nothing is trying to simulate without providing a IScriptSimulationUI
+        return false;
+    }
 
     PyGILState_STATE state = PyGILState_Ensure();
 
     PyEval_ReInitThreads();
 
-    _asmodule = new AutoScriptModule(_drone, simulate, ssui);
-    _imgproc = new ImgProc(_drone, iv, simulate, ssui);
+    bool initialized = false;
+    bool error = false;
 
-	bool initialized = false;
-	bool error = false;
-
-    // Initialize namespaces and modules
-    py::object main_module = py::import("__main__");
-    py::object main_namespace = main_module.attr("__dict__");
-
-    // Set up the standard output redirector
-    py::object redirector_module((py::handle<>(PyImport_ImportModule("autoscriptioredirector"))));
-    main_namespace["autoscriptioredirector"] = redirector_module;
-
-    ASIORedirector redirector;
-    redirector.addOutputListener(outputCallback);
-    boost::python::import("sys").attr("stderr") = redirector;
-    boost::python::import("sys").attr("stdout") = redirector;
-
-    // Import drone control functions
-    py::object autoscript_module((py::handle<>(PyImport_ImportModule("autoscript"))));
-    main_namespace["autoscript"] = autoscript_module;
-
-    main_namespace["basicctl"] = py::ptr(_asmodule);
-    main_namespace["imgproc"] = py::ptr(_imgproc);
-
-	try
     {
-		initialized = true;
+        _asmodule = new AutoScriptModule(_drone, simulate, ssui);
+        _imgproc = new ImgProc(_drone, iv, simulate, ssui);
 
-		py::exec(py::str(script), main_namespace);
+        // Initialize namespaces and modules
+        py::object main_module = py::import("__main__");
+        py::object main_namespace = main_module.attr("__dict__");
 
-		drone_hover(_drone);
+        py::dict global_namespace;
+        py::dict local_namespace;
 
-		error = false;
-	}
-	catch(const py::error_already_set &ex)
-	{
-		drone_hover(_drone);
+        global_namespace["__builtins__"] = main_namespace["__builtins__"];
 
-		if(e != NULL)
-		{
-			*e = getLatestExceptionMessage();
+        // Set up the standard output redirector
+        py::object redirector_module((py::handle<>(PyImport_ImportModule("autoscriptioredirector"))));
+        global_namespace["autoscriptioredirector"] = redirector_module;
 
-			if(!initialized)
-			{
-				e->internalError = true;
-			}
-			else
-			{
-				e->internalError = false;
-			}
-		}
-		else
-		{
-			cout << getLatestExceptionMessage().message << endl;
-		}
+        ASIORedirector redirector;
+        redirector.addOutputListener(outputCallback);
+        py::import("sys").attr("stderr") = redirector;
+        py::import("sys").attr("stdout") = redirector;
 
-		error = true;
-	}
+        // Import drone control functions
+        py::object autoscript_module((py::handle<>(PyImport_ImportModule("autoscript"))));
+        global_namespace["autoscript"] = autoscript_module;
+        global_namespace["basicctl"] = py::ptr(_asmodule);
+        global_namespace["imgproc"] = py::ptr(_imgproc);
 
-    _imgproc->stopTagDetector();
+        global_namespace["__name__"] = py::str("__main__");
 
-	delete _imgproc;
-    delete _asmodule;
-	_imgproc = nullptr;
-    _asmodule = nullptr;
+        py::list path = py::extract<py::list>(py::import("sys").attr("path"));
 
+        try
+        {
+            initialized = true;
+
+            string pythonpath = "hello";
+
+            if(!file)
+            {
+                py::exec(py::str(script), global_namespace, local_namespace);
+            }
+            else
+            {
+                path.append(script.substr(0, script.find_last_of('/')));
+                py::import("sys").attr("path") = path;
+                py::exec_file(py::str(script), global_namespace, local_namespace);
+            }
+
+            drone_hover(_drone);
+
+            error = false;
+        }
+        catch(const py::error_already_set& ex)
+        {
+            drone_hover(_drone);
+
+            if(e!=NULL)
+            {
+                *e = getLatestExceptionMessage();
+
+                e->internalError = !initialized;
+            }
+            else
+            {
+                cout << getLatestExceptionMessage().message << endl;
+            }
+
+            error = true;
+        }
+
+        py::import("sys").attr("path") = path.slice(0, py::len(path) - 1);
+
+        global_namespace.clear();
+        local_namespace.clear();
+
+        _imgproc->stopTagDetector();
+
+        delete _imgproc;
+        delete _asmodule;
+        _imgproc = nullptr;
+        _asmodule = nullptr;
+    }
 	PyGILState_Release(state);
 
 	return !error;
@@ -212,9 +231,9 @@ void ASEngine::stopRunningScript()
 		_imgproc->abortFlag = true;
 	}
 
-	PyGILState_STATE state = PyGILState_Ensure();
+	//PyGILState_STATE state = PyGILState_Ensure();
 	Py_AddPendingCall(&pyQuit, NULL);
-	PyGILState_Release(state);
+	//PyGILState_Release(state);
 }
 
 ASError ASEngine::getLatestExceptionMessage()
