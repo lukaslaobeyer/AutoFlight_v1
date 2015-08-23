@@ -196,6 +196,19 @@ boost::python::dict AutoScriptModule::status()
     return status;
 }
 
+boost::python::dict AutoScriptModule::limits()
+{
+    boost::python::dict limits;
+
+    drone::limits l = d->getLimits();
+    limits["angle"] = l.angle;
+    limits["altitude"] = l.altitude;
+    limits["vspeed"] = l.vspeed;
+    limits["yawspeed"] = l.yawspeed;
+
+    return limits;
+}
+
 void AutoScriptModule::flattrim()
 {
     drone::error status = d->addCommand(drone::commands::fttrim());

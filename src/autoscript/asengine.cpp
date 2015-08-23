@@ -24,6 +24,7 @@ BOOST_PYTHON_MODULE(autoscript)
                 .def("flip", &AutoScriptModule::flip)
                 .def("navdata", &AutoScriptModule::navdata)
                 .def("status", &AutoScriptModule::status)
+                .def("limits", &AutoScriptModule::limits)
                 .def("flattrim", &AutoScriptModule::flattrim)
 			    .def("set_view", &AutoScriptModule::set_view)
                 .def("startrecording", &AutoScriptModule::startrecording)
@@ -85,6 +86,7 @@ vector<string> ASEngine::getAvailableFunctions()
             "basicctl.flip",
             "basicctl.hover",
             "basicctl.land",
+            "basicctl.limits",
             "basicctl.move",
             "basicctl.move_rel",
             "basicctl.navdata",

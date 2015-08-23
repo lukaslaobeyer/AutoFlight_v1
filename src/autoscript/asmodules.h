@@ -23,6 +23,7 @@ class AutoScriptModule
 
         boost::python::dict navdata();
         boost::python::dict status();
+        boost::python::dict limits();
 
         void flattrim();
 

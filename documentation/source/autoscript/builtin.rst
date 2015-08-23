@@ -13,6 +13,15 @@ They are divided into two modules named ``basicctl`` and ``imgproc``. The ``imgp
 
 For more advanced and high-level commands, please use the ``dronectl`` package.
 
+Exceptions
+==========
+
+All the functions in this module will throw a :class:`RuntimeError` when the drone is not connected, not armed (and arming is necessary for the desired operation), an unsupported action is executed or an unknown error occurrs.
+
+.. note::
+
+   Currently :class:`RuntimeError` is used but it is likely that in the future a custom exception class will be created.
+
 Basic control and navigation data retrieval
 ===========================================
 
@@ -28,7 +37,7 @@ Basic control and navigation data retrieval
 
 .. function:: basicctl.move(pitch, roll, gaz, yaw)
 
-   Moves the drone by setting the pitch and roll angles as well as vertical and rotational speed.
+   Moves the drone by setting the pitch and roll angles as well as vertical and rotational speed. Values will be clipped at the maximum allowable (see :func:`basicctl.limits`).
 
    .. note:: This function will cause the drone to move with the specified parameters for an infinite amount of time. You will need to call the ``hover()`` command to stop it.
 
@@ -40,7 +49,7 @@ Basic control and navigation data retrieval
 
 .. function:: basicctl.move_rel(pitch, roll, gaz, yaw)
 
-   Moves the drone. The parameters are multipliers of the allowed maximum, and have to be in the range from -1.0 (corresponding to the maximum tilt in one direction) to 1.0 (corresponding to the maximum in the other direction).
+   Moves the drone. The parameters are multipliers of the allowed maximum (see :func:`basicctl.limits`), and have to be in the range from -1.0 (corresponding to the maximum tilt in one direction) to 1.0 (corresponding to the maximum in the other direction).
 
    .. note:: This function will cause the drone to move with the specified parameters for an infinite amount of time. You will need to call the ``hover()`` command to stop it.
 
@@ -59,7 +68,7 @@ Basic control and navigation data retrieval
 
    Sends the flip command to the drone.
 
-   :param direction: ``"FRONT"``, ``"BACK"``, ``"LEFT"`` or ``"RIGHT"``
+   :param direction: ``'FRONT'``, ``'BACK'``, ``'LEFT'`` or ``'RIGHT'``
 
 
 .. function:: basicctl.navdata()
@@ -73,7 +82,19 @@ Basic control and navigation data retrieval
 
    Retrieve the drone's status.
 
-   :returns: A ``dict`` containing three keys: ``'connected'``, ``'armed'`` and ``'flying'``.
+   :returns: A ``dict`` containing three boolean keys: ``'connected'``, ``'armed'`` and ``'flying'``.
+
+
+.. function:: basicctl.limits()
+
+   Get the flight control limits. These directly correspond to the maximum values allowed for :func:`basicctl.move`.
+
+   :returns: A ``dict`` containing the keys:
+
+      * ``'altitude'``: Altitude in meters
+      * ``'angle'``: Maximum pitch/roll angle in radians
+      * ``'vspeed'``: Maximum vertical speed in m/s
+      * ``'yawspeed'``: Maximum rotational (yaw) speed in rad/s
 
 
 .. function:: basicctl.flattrim()
@@ -91,19 +112,19 @@ Basic control and navigation data retrieval
 
 .. function:: basicctl.startrecording()
 
-   Start recording.
+   Start recording video
 
 
 .. function:: basicctl.stoprecording()
 
-   Stop recording.
+   Stop recording video.
 
 
 .. function:: basicctl.switchview(view)
 
    Switch between front and bottom view. On the AR.Drone 2.0 this switches between the front and bottom camera. On the Bebop this changes the view of the digital gimbal.
 
-   :param view: "TOGGLE" to toggle between front/bottom, "FRONT" to look front, "BOTTOM" to look down.
+   :param view: ``'TOGGLE'`` to toggle between front/bottom, ``'FRONT'`` to look front, ``'BOTTOM'`` to look down.
 
 
 .. function:: basicctl.takepicture()
