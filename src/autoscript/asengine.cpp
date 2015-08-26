@@ -172,13 +172,13 @@ bool ASEngine::runScript(bool file, string script, bool simulate, IScriptSimulat
 
             if(!file)
             {
-                py::exec(py::str(script), global_namespace, local_namespace);
+                py::exec(py::str(script), global_namespace/*, local_namespace*/);
             }
             else
             {
                 path.append(script.substr(0, script.find_last_of('/')));
                 py::import("sys").attr("path") = path;
-                py::exec_file(py::str(script), global_namespace, local_namespace);
+                py::exec_file(py::str(script), global_namespace/*, local_namespace*/);
             }
 
             drone_hover(_drone);
