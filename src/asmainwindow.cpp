@@ -303,7 +303,7 @@ void ASMainWindow::newFile()
 	fileSavedAs = "";
 }
 
-void ASMainWindow::openFile()
+void ASMainWindow::openFile(std::string file)
 {
 	// Confirmation dialog when there are unsaved changes
 	if(documentEdited)
@@ -314,12 +314,24 @@ void ASMainWindow::openFile()
 		}
 	}
 
+	QString filePath = QString::fromStdString(file);
 
-	QString filePath = QFileDialog::getOpenFileName(this, tr("Open script"), "", tr("AutoFlight Scripts (*.ascr *.py);;Any File (*.*)"));
-	if(filePath.isNull())
+	if(file == "")
 	{
-		return;
+		filePath = QFileDialog::getOpenFileName(this, tr("Open script"), "",
+				tr("AutoFlight Scripts (*.ascr *.py);;Any File (*.*)"));
+		if (filePath.isNull())
+		{
+			return;
+		}
 	}
+
+    QFileInfo checkFile(filePath);
+    if(!(checkFile.exists() && checkFile.isFile()))
+    {
+        QMessageBox::critical(this, tr("Could not open file"), tr("File %1 does not exist").arg(filePath));
+        return;
+    }
 
 	QString fileName;
 
@@ -510,19 +522,19 @@ void ASMainWindow::runScript(bool simulate)
 	bool exception_occurred = true;
     if(!fileAlreadySavedAs)
     {
-        exception_occurred = !_ase->runScript(false, _editor->text().toStdString(), simulate, this, _iv, &exception,
+        exception_occurred = !_ase->runScript(false, _editor->text().toStdString(), scriptArgs, simulate, this, _iv, &exception,
                 callback);
     }
     else
     {
         saveFile();
-        exception_occurred = !_ase->runScript(true, fileSavedAs, simulate, this, _iv, &exception, callback);
+        exception_occurred = !_ase->runScript(true, fileSavedAs, scriptArgs, simulate, this, _iv, &exception, callback);
     }
 
 	if(exception_occurred)
 	{
 		Q_EMIT scriptOutputAvailable(QString::fromStdString(exception.message));
-		Q_EMIT highlightErrorSignal(exception.linenumber);
+		Q_EMIT highlightErrorSignal((int) exception.linenumber);
 		if(simulate)
 		{
 			Q_EMIT scriptOutputAvailable(tr("---------[SCRIPT SIMULATION ABORTED]----------\n\n"));
@@ -692,4 +704,9 @@ void ASMainWindow::closeEvent(QCloseEvent *event)
 			event->accept();
 		}
 	}
+}
+
+void ASMainWindow::setScriptArgs(std::vector<std::string> args)
+{
+    scriptArgs = args;
 }

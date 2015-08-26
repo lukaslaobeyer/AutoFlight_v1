@@ -159,6 +159,11 @@ void AFMainWindow::showMessage(string message)
 	Q_EMIT showMessageSignal(QString::fromStdString(message));
 }
 
+void AFMainWindow::launchAutoScriptIDE(std::string file, std::vector<std::string> args)
+{
+	Q_EMIT launchAutoScriptIDESlot(file, args);
+}
+
 void AFMainWindow::showMessageSlot(QString message)
 {
 	const static int msg_width = 450;
@@ -382,7 +387,7 @@ QWidget *AFMainWindow::createVerticalToolbar()
 	QPushButton *launchAutoScript = new QPushButton();
 	launchAutoScript->setIcon(QIcon(QPixmap::fromImage(QImage(":/resources/autoscript.png"))));
 	launchAutoScript->setIconSize(QSize(200, 50));
-	QObject::connect(launchAutoScript, SIGNAL(clicked()), this, SLOT(launchAutoScriptIDE()));
+	QObject::connect(launchAutoScript, SIGNAL(clicked()), this, SLOT(launchAutoScriptIDESlot()));
 	layout->addWidget(launchAutoScript);
 
 	return panel;
@@ -460,11 +465,13 @@ void AFMainWindow::toggleHUD(bool showHUD)
 	verticalToolbar->setVisible(!showHUD);
 }
 
-void AFMainWindow::launchAutoScriptIDE()
+void AFMainWindow::launchAutoScriptIDESlot(std::string file, std::vector<std::string> args)
 {
 	if(_asWindow == NULL)
 	{
 		_asWindow = new ASMainWindow(_af->asengine(), this);
+        _asWindow->openFile(file);
+        _asWindow->setScriptArgs(args);
         QObject::connect(_asWindow, SIGNAL(processedFrameAvailableSignal(QImage)), this, SLOT(processedFrameAvailable(QImage)));
 	}
 

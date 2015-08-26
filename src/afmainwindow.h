@@ -47,6 +47,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 		void connectionEstablished();
 
 		void showMessage(std::string msg);
+		void launchAutoScriptIDE(std::string file = "", std::vector<std::string> args = {});
 	public Q_SLOTS:
 		void hideMessages();
 		void flatTrimActionTriggered();
@@ -99,7 +100,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 		void toggleHUD(bool showHUD);
 		void resetBebopSettings();
 		void launchBebopVideoSettings();
-		void launchAutoScriptIDE();
+		void launchAutoScriptIDESlot(std::string file = "", std::vector<std::string> args = {});
 		void launchSessionViewerDialog();
 		void launch3DMapView();
 		void launchImageProcessingPipelineEditor();

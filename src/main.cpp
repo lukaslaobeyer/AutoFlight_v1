@@ -26,6 +26,8 @@ int main(int argc, char *argv[])
 	desc.add_options()
 			("help", "show help message")
 			("drone", boost::program_options::value<std::string>(), "set which drone to use (ARDrone2 or Bebop, default is ARDrone2)")
+            ("script", boost::program_options::value<std::string>(), "load a python script")
+            ("script-args", boost::program_options::value<std::vector<std::string>>()->multitoken(), "arguments for the python script")
 			("ip-address", boost::program_options::value<std::string>(), "an alternative IP address for the drone (default is 192.168.1.1 for AR.Drone 2.0 and 192.168.42.1 for Bebop)")
 			("stream-resolution", boost::program_options::value<std::string>(), "resolution for the live video stream (360P default, can be set to 720P)")
 	;
@@ -102,6 +104,17 @@ int main(int argc, char *argv[])
 
 	AFMainWindow w(&af);
 	w.show();
+
+    if(vm.count("script"))
+    {
+        std::string script = vm["script"].as<std::string>();
+        std::vector<std::string> args;
+        if(vm.count("script-args"))
+        {
+            args = vm["script-args"].as<std::vector<std::string>>();
+        }
+        w.launchAutoScriptIDE(script, args);
+    }
 
 	gui.exec();
 

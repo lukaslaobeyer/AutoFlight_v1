@@ -29,7 +29,7 @@ class ASEngine
 
 		std::vector<std::string> getAvailableFunctions();
 
-		bool runScript(bool file, std::string script, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, std::function<void(const std::string &)> outputCallback);
+		bool runScript(bool file, std::string script, std::vector<std::string> args, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, std::function<void(const std::string &)> outputCallback);
 		void stopRunningScript();
 		std::string getPythonVersion();
 
@@ -38,6 +38,9 @@ class ASEngine
 		ASError getLatestExceptionMessage();
 
 		std::shared_ptr<FPVDrone> _drone;
+
+        std::vector<std::wstring> _w_args;
+		std::vector<wchar_t *> _c_args;
 
 		AutoScriptModule *_asmodule = nullptr;
 		ImgProc *_imgproc = nullptr;

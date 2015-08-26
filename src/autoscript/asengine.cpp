@@ -117,7 +117,7 @@ string ASEngine::getPythonVersion()
 	return v.substr(0, v.find_first_of(' '));
 }
 
-bool ASEngine::runScript(bool file, string script, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, function<void(const string &)> outputCallback)
+bool ASEngine::runScript(bool file, string script, vector<string> args, bool simulate, IScriptSimulationUI *ssui, ImageVisualizer *iv, ASError *e, function<void(const string &)> outputCallback)
 {
     if (simulate && ssui==NULL)
     {
@@ -125,9 +125,29 @@ bool ASEngine::runScript(bool file, string script, bool simulate, IScriptSimulat
         return false;
     }
 
+    // Convert the argument to C strings and set them
+    if(file)
+    {
+        args.insert(args.begin(), script);
+    }
+    else
+    {
+        args.insert(args.begin(), "");
+    }
+
     PyGILState_STATE state = PyGILState_Ensure();
 
     PyEval_ReInitThreads();
+
+    _c_args.clear();
+    _w_args.clear();
+    for(size_t i = 0; i < args.size(); ++i)
+    {
+        _w_args.push_back(std::wstring());
+        _w_args[i].assign(args[i].begin(), args[i].end());
+        _c_args.push_back(const_cast<wchar_t *>(_w_args[i].c_str()));
+    }
+    PySys_SetArgvEx((int) _c_args.size(), &_c_args[0], 0);
 
     bool initialized = false;
     bool error = false;

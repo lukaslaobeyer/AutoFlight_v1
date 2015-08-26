@@ -30,9 +30,12 @@ class ASMainWindow : public QMainWindow, public IScriptSimulationUI
 		void printAction(std::string action);
 		bool getSimulatedBoolInput(std::string text);
 		float getSimulatedFloatInput(std::string text, std::string unit);
+
+        void setScriptArgs(std::vector<std::string> args);
+	public Q_SLOTS:
+	    void openFile(std::string = "");
 	private Q_SLOTS:
 		void newFile();
-		void openFile();
 		void saveFile();
 		void saveFileAs();
 		void textEdited();
@@ -83,6 +86,8 @@ class ASMainWindow : public QMainWindow, public IScriptSimulationUI
 		bool documentEdited = false;
 		bool fileAlreadySavedAs = false;
 		std::string fileSavedAs;
+
+        std::vector<std::string> scriptArgs;
 
 		boost::thread *scriptThread = NULL;
 		bool _scriptRunning = false;
