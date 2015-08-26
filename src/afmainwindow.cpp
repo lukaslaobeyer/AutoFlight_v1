@@ -470,8 +470,14 @@ void AFMainWindow::launchAutoScriptIDESlot(std::string file, std::vector<std::st
 	if(_asWindow == NULL)
 	{
 		_asWindow = new ASMainWindow(_af->asengine(), this);
-        _asWindow->openFile(file);
-        _asWindow->setScriptArgs(args);
+		if(file != "")
+		{
+			_asWindow->openFile(file);
+		}
+		if(args.size() > 0)
+		{
+			_asWindow->setScriptArgs(args);
+		}
         QObject::connect(_asWindow, SIGNAL(processedFrameAvailableSignal(QImage)), this, SLOT(processedFrameAvailable(QImage)));
 	}
 

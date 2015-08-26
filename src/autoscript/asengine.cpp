@@ -196,7 +196,7 @@ bool ASEngine::runScript(bool file, string script, vector<string> args, bool sim
             }
             else
             {
-                path.append(script.substr(0, script.find_last_of('/')));
+                path.append(script.substr(0, script.find_last_of("/\\")));
                 py::import("sys").attr("path") = path;
                 py::exec_file(py::str(script), global_namespace/*, local_namespace*/);
             }
