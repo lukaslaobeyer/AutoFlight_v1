@@ -92,9 +92,9 @@ ASMainWindow::ASMainWindow(ASEngine *e, QWidget *parent) : QMainWindow(parent)
 	}
 
 	api->prepare();
-	_editor->setAutoCompletionCaseSensitivity(false);
+	/*_editor->setAutoCompletionCaseSensitivity(false);
 	_editor->setAutoCompletionThreshold(4);
-	_editor->setAutoCompletionSource(QsciScintilla::AcsAPIs);
+	_editor->setAutoCompletionSource(QsciScintilla::AcsAPIs);*/
 
 	_editor->setText(tr( "# \n"
 						 "# AutoScript is based on Python. You can use all of\n"

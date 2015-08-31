@@ -113,7 +113,7 @@ boost::python::list ImgProc::getTagDetections()
             boost::python::list points;
             for(int i = 0; i < 4; i++)
             {
-                points.append(boost::python::make_tuple(detection.p[i].x, detection.p[i].y));
+                points.append(boost::python::make_tuple(detection.p[i].x + _roi_rect.x, detection.p[i].y + _roi_rect.y));
             }
             boost::python::tuple params = boost::python::make_tuple(detection.id, detection.good, points);
             py_detections.append(params);

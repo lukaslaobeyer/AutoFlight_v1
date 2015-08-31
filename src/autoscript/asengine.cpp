@@ -188,8 +188,6 @@ bool ASEngine::runScript(bool file, string script, vector<string> args, bool sim
         {
             initialized = true;
 
-            string pythonpath = "hello";
-
             if(!file)
             {
                 py::exec(py::str(script), global_namespace/*, local_namespace*/);
