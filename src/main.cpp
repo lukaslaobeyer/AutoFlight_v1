@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    wTimerRes = std::min(std::max((int) tc.wPeriodMin, (int) TARGET_RESOLUTION), (int) tc.wPeriodMax);
+    wTimerRes = std::min(std::max((UINT) tc.wPeriodMin, (UINT) TARGET_RESOLUTION), (UINT) tc.wPeriodMax);
     timeBeginPeriod(wTimerRes);
 #endif
 
