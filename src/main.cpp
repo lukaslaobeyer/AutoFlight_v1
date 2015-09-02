@@ -3,6 +3,7 @@
 		#define WIN32_LEAN_AND_MEAN
 	#endif
 	#include <windows.h>
+    #define TARGET_RESOLUTION 1
 #endif
 
 #include "autoflight.h"
@@ -19,6 +20,19 @@ int main(int argc, char *argv[])
 {
 #ifdef __MINGW32__
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+
+	// Set the timer resolution on Windows
+    TIMECAPS tc;
+    UINT     wTimerRes;
+
+    if(timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR)
+    {
+        std::cerr << "FATAL ERROR: Could not determine supported timer resolutions." << std::endl;
+        return 1;
+    }
+
+    wTimerRes = std::min(std::max(tc.wPeriodMin, TARGET_RESOLUTION), tc.wPeriodMax);
+    timeBeginPeriod(wTimerRes);
 #endif
 
 	// Parse command line options with boost::program_options
@@ -121,6 +135,10 @@ int main(int argc, char *argv[])
 	Gamepad_shutdown();
 
 	//Py_Finalize();
+
+#ifdef __MINGW32__
+    timeEndPeriod(wTimerRes);
+#endif
 
 	std::cout << "Closing...\n";
 
