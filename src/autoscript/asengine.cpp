@@ -283,7 +283,10 @@ ASError ASEngine::getLatestExceptionMessage()
 
 			if(ptraceback != NULL)
 			{
-				py::object traceback(py::handle<>(py::allow_null(ptraceback)));
+                py::object print_exception = py::import("traceback").attr("print_exception");
+                print_exception(py::handle<>(py::allow_null(ptype)), py::handle<>(py::allow_null(pvalue)), py::handle<>(py::allow_null(ptraceback)));
+/*
+                py::object traceback(py::handle<>(py::allow_null(ptraceback)));
 
 				long lineno = py::extract<long>(traceback.attr("tb_lineno"));
 				string filename = py::extract<string>(traceback.attr("tb_frame").attr("f_code").attr("co_filename"));
@@ -293,7 +296,7 @@ ASError ASEngine::getLatestExceptionMessage()
 				e.filename = filename;
 				e.funcname = funcname;
 
-				ss << "Exception occurred in line " << lineno << " (" << funcname << ", " << filename << "):\n" << strErrorMessage << endl;
+				ss << "Exception occurred in line " << lineno << " (" << funcname << ", " << filename << "):\n" << strErrorMessage << endl;*/
 			}
 			else
 			{
