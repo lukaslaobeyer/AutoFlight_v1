@@ -274,7 +274,10 @@ ASError ASEngine::getLatestExceptionMessage()
 			py::object type(py::handle<>(py::allow_null(ptype)));
 			py::object value(py::handle<>(py::allow_null(pvalue)));
 
-			string strErrorMessage = "No error message available";
+            py::object print_exception = py::import("traceback").attr("print_exception");
+            print_exception(py::handle<>(py::allow_null(ptype)), py::handle<>(py::allow_null(pvalue)), py::handle<>(py::allow_null(ptraceback)));
+            /*
+            string strErrorMessage = "No error message available";
 
 			if(pvalue != NULL)
 			{
@@ -283,9 +286,7 @@ ASError ASEngine::getLatestExceptionMessage()
 
 			if(ptraceback != NULL)
 			{
-                py::object print_exception = py::import("traceback").attr("print_exception");
-                print_exception(py::handle<>(py::allow_null(ptype)), py::handle<>(py::allow_null(pvalue)), py::handle<>(py::allow_null(ptraceback)));
-/*
+
                 py::object traceback(py::handle<>(py::allow_null(ptraceback)));
 
 				long lineno = py::extract<long>(traceback.attr("tb_lineno"));
@@ -296,12 +297,13 @@ ASError ASEngine::getLatestExceptionMessage()
 				e.filename = filename;
 				e.funcname = funcname;
 
-				ss << "Exception occurred in line " << lineno << " (" << funcname << ", " << filename << "):\n" << strErrorMessage << endl;*/
+				ss << "Exception occurred in line " << lineno << " (" << funcname << ", " << filename << "):\n" << strErrorMessage << endl;
 			}
 			else
 			{
 				ss << "Exception occured:\n" << strErrorMessage << endl;
 			}
+            */
 		}
 	}
 
