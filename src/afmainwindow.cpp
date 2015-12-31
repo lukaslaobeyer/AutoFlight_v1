@@ -134,6 +134,9 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 		_manualcontrol->setControllerConfiguration(cc);
 	}
 
+	// Initialize sound alerts
+    QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), &_soundAlerts, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
+
 	showFirstRunInfoIfRequired();
 
     loadDroneConfiguration();

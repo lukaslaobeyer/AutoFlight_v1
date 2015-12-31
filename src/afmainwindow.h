@@ -20,6 +20,7 @@
 #include "asmainwindow.h"
 #include "input/manualcontrol.h"
 #include "input/icontrollerinputlistener.h"
+#include "soundalerts.h"
 
 #include <drone.h>
 #include <interface/inavdatalistener.h>
@@ -90,6 +91,8 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
         uint64_t _lastProcessedFrameTime = 0;
 
 		ImageProcessor *_imgProcTest = NULL;
+
+		SoundAlerts _soundAlerts;
 	private Q_SLOTS:
 		void showMessageSlot(QString message);
 		void attemptConnection();

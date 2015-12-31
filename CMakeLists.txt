@@ -53,6 +53,7 @@ include_directories("${PROJECT_SOURCE_DIR}/../libdrone/include")
 add_definitions(-DQT_NO_KEYWORDS)
 find_package(Qt5Widgets)
 find_package(Qt5OpenGL)
+find_package(Qt5Multimedia)
 
 # Find the Boost libraries
 IF(MINGW)
@@ -197,4 +198,4 @@ ELSE()
 ENDIF()
 
 # Use the Widgets module from Qt 5
-qt5_use_modules(AutoFlight Widgets PrintSupport WebKit WebKitWidgets OpenGL)
+qt5_use_modules(AutoFlight Widgets PrintSupport WebKit WebKitWidgets OpenGL Multimedia)
