@@ -17,7 +17,7 @@ void SoundAlerts::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
     int battery_percent = (int) (nd->batterystatus * 100.0f);
     int link_percent = (int) (nd->linkquality * 100.0f);
 
-    if(battery_percent <= BATTERY_ALERT_THRESHOLD)
+    if((battery_percent <= BATTERY_ALERT_THRESHOLD) && (battery_percent > 0))
     {
         if(!battery_low->isPlaying()) battery_low->play();
     }
@@ -26,7 +26,7 @@ void SoundAlerts::navdataAvailable(std::shared_ptr<const drone::navdata> nd)
         if(battery_low->isPlaying()) battery_low->stop();
     }
 
-    if(link_percent <= LINK_ALERT_THRESHOLD)
+    if((link_percent <= LINK_ALERT_THRESHOLD) && (link_percent > 0))
     {
         if(!link_weak->isPlaying()) link_weak->play();
     }

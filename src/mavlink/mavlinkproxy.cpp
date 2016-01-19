@@ -2,6 +2,8 @@
 
 #include <future>
 #include <chrono>
+#include <sstream>
+#include <fstream>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -171,6 +173,19 @@ void MAVLinkProxy::connectionLost()
     _connected = false;
 }
 
+bool MAVLinkProxy::saveFlightPlan(std::string path)
+{
+    if(_mission_ready)
+    {
+        return false;
+    }
+
+    std::ofstream out(path);
+    out << _mission;
+    out.close();
+    return true;
+}
+
 void MAVLinkProxy::heartbeat()
 {
     static mavlink_message_t msg;
@@ -235,14 +250,295 @@ void MAVLinkProxy::dataReceived(const boost::system::error_code &error, size_t r
     static mavlink_message_t msg;
     static mavlink_status_t status;
 
+    // Response message and buffer
+    static mavlink_message_t msg_response;
+    static uint8_t buf[MAVLINK_MAX_PACKET_LEN];
+
+    // Waypoint reception variables
+    static int waypoints_to_receive = 0;
+    static uint16_t waypoints_received = 0;
+    static int waypoint_timeout = 200;
+    static unsigned long last_waypoint_time = 0;
+
     for(int i = 0; i < (int) received_bytes; i++)
     {
         if(mavlink_parse_char(MAVLINK_COMM_0, _received_msg_buf[i], &msg, &status))
         {
-            printf("Received packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
+            // Handle received messages
+            msg_response.magic = 0;
+
+            // Waypoint reception
+            if(waypoints_to_receive > 0 && (last_waypoint_time + waypoint_timeout <= (std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1))))
+            {
+                // Timeout
+                printf("Timeout receiving waypoints!\n");
+                waypoints_to_receive = 0;
+                last_waypoint_time = 0;
+            }
+
+            if(waypoints_to_receive > 0 && msg.msgid == MAVLINK_MSG_ID_MISSION_ITEM)
+            {
+                // Got waypoint
+                waypoints_received++;
+                waypoints_to_receive--;
+
+                mavlink_mission_item_t waypoint;
+                mavlink_msg_mission_item_decode(&msg, &waypoint);
+                handleWaypoint(&waypoint);
+
+                last_waypoint_time = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+
+                if(waypoints_to_receive > 0)
+                {
+                    mavlink_mission_request_t request;
+                    request.seq = waypoints_received;
+                    request.target_system = msg.sysid;
+                    request.target_component = msg.compid;
+
+                    mavlink_msg_mission_request_encode(_mavlink_system.sysid, _mavlink_system.compid, &msg_response, &request);
+                }
+                else
+                {
+                    mavlink_mission_ack_t ack;
+                    ack.target_system = msg.sysid;
+                    ack.target_component = msg.compid;
+                    ack.type = MAV_MISSION_ACCEPTED;
+
+                    mavlink_msg_mission_ack_encode(_mavlink_system.sysid, _mavlink_system.compid, &msg_response, &ack);
+
+                    processPartialMission();
+                }
+            }
+            else if(msg.msgid == MAVLINK_MSG_ID_MISSION_REQUEST_LIST)
+            {
+                printf("Waypoint count request\n");
+                uint16_t mission_length = 0;
+
+                mavlink_msg_mission_count_pack(_mavlink_system.sysid, _mavlink_system.compid, &msg_response, msg.sysid, msg.compid, mission_length);
+            }
+            else if(msg.msgid == MAVLINK_MSG_ID_PARAM_REQUEST_LIST)
+            {
+                printf("Parameter request\n");
+                mavlink_param_value_t param;
+                param.param_count = 0;
+                param.param_id[0] = '\0';
+                param.param_index = 0;
+                param.param_type = MAV_PARAM_TYPE_UINT8;
+                param.param_value = 0;
+
+                mavlink_msg_param_value_encode(_mavlink_system.sysid, _mavlink_system.compid, &msg_response, &param);
+            }
+            else if(msg.msgid == MAVLINK_MSG_ID_MISSION_COUNT)
+            {
+                mavlink_mission_count_t mission_count;
+                mavlink_msg_mission_count_decode(&msg, &mission_count);
+                printf("%d waypoints available\n", mission_count.count);
+
+                _mission_ready = false;
+                _partial_mission.clear();
+                waypoints_to_receive = mission_count.count;
+                waypoints_received = 0;
+                last_waypoint_time = std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+
+                mavlink_mission_request_t request;
+                request.seq = 0;
+                request.target_system = msg.sysid;
+                request.target_component = msg.compid;
+
+                mavlink_msg_mission_request_encode(_mavlink_system.sysid, _mavlink_system.compid, &msg_response, &request);
+            }
+            else if(msg.msgid == MAVLINK_MSG_ID_HEARTBEAT)
+            {
+                // Heartbeat from MAVLink ground station
+            }
+            else
+            {
+                // Unhandled message type
+                printf("Unknown MAVLink packet: SYS: %d, COMP: %d, LEN: %d, MSG ID: %d\n", msg.sysid, msg.compid, msg.len, msg.msgid);
+            }
+
+            // Send a response if the message has been populated
+            if(msg_response.magic != 0)
+            {
+                mavlink_msg_to_send_buffer(buf, &msg_response);
+                _socket.send_to(boost::asio::buffer(buf), _endpoint);
+            }
         }
     }
 
     // Listen for next packet
     _socket.async_receive_from(boost::asio::buffer(_received_msg_buf), _endpoint, boost::bind(&MAVLinkProxy::dataReceived, this, boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
+}
+
+void MAVLinkProxy::handleWaypoint(mavlink_mission_item_t *waypoint)
+{
+#define FREEFLIGHT_ACCEPTANCE_RADIUS 5
+
+    // Ensure the waypoint type is compatible with the Bebop and modify parameters if necessary
+    uint16_t command;
+    double param1 = 0, param2 = 0, param3 = 0, param4 = 0, x = 0, y = 0, z = 0;
+
+    command = waypoint->command;
+
+    switch(command)
+    {
+    case MAV_CMD_NAV_WAYPOINT:
+        // Use the same acceptance radius FreeFlight does, just in case.
+        param2 = FREEFLIGHT_ACCEPTANCE_RADIUS;
+        param4 = waypoint->param4;
+        x = waypoint->x;
+        y = waypoint->y;
+        z = waypoint->z;
+        break;
+    case MAV_CMD_NAV_TAKEOFF:
+        // FreeFlight FlightPlan does not use takeoff commands for some reason.
+        // Convert a takeoff command to a normal waypoint.
+        command = MAV_CMD_NAV_WAYPOINT;
+        param2 = FREEFLIGHT_ACCEPTANCE_RADIUS;
+        param4 = waypoint->param4;
+        x = waypoint->x;
+        y = waypoint->y;
+        z = waypoint->z;
+        break;
+    case MAV_CMD_NAV_LAND:
+        param2 = 0;
+        param4 = waypoint->param4;
+        x = waypoint->x;
+        y = waypoint->y;
+        z = waypoint->z;
+        break;
+    case MAV_CMD_DO_CHANGE_SPEED:
+        param2 = waypoint->param2;
+        param3 = -1;
+        break;
+    case MAV_CMD_IMAGE_START_CAPTURE:
+        // Just use defaults.
+        // RAW: Minimum interval: 8
+        // JPEG: Minimum interval: 6.2
+        // Snapshot: Minimum interval: 1
+        // JPEG 180: Minimum interval 6.2
+        param1 = 10;
+        param2 = 0;
+        param3 = 14;
+        break;
+    case MAV_CMD_IMAGE_STOP_CAPTURE:
+        // Leave everything at 0
+        break;
+    case MAV_CMD_VIDEO_START_CAPTURE:
+        param2 = 30; // 30FPS
+        param3 = 2073600; // Mystery parameter used by FreeFlight
+    case MAV_CMD_VIDEO_STOP_CAPTURE:
+        // Leave everything at 0
+        break;
+    case MAV_CMD_PANORAMA_CREATE:
+        param1 = waypoint->param1;
+        if(waypoint->param3 >= 180) // Max 180
+        {
+            param3 = 180;
+        }
+        else if(waypoint->param3 <= 5) // Min 5
+        {
+            param3 = 5;
+        }
+        else
+        {
+            param3 = waypoint->param3;
+        }
+
+        break;
+    default:
+        printf("Unsupported command type %d\n", command);
+        return;
+    }
+
+    _partial_mission.push_back({0, 3, command, param1, param2, param3, param4, x, y, z});
+}
+
+void MAVLinkProxy::processPartialMission()
+{
+    // FreeFlight missions always begin with this change speed command. Add it, just in case.
+    _partial_mission.insert(_partial_mission.begin(), {0, 3, MAV_CMD_DO_CHANGE_SPEED, 0, 6, -1, 0, 0, 0});
+
+    // Check that pictures and video are not being taken at the same time
+    bool video = false;
+    bool pictures = false;
+    for(int i = 0; i < _partial_mission.size(); i++)
+    {
+        switch(_partial_mission[i].command)
+        {
+        case MAV_CMD_IMAGE_START_CAPTURE:
+            pictures = true;
+            break;
+        case MAV_CMD_IMAGE_STOP_CAPTURE:
+            pictures = false;
+            break;
+        case MAV_CMD_VIDEO_START_CAPTURE:
+            video = true;
+            break;
+        case MAV_CMD_VIDEO_STOP_CAPTURE:
+            video = false;
+            break;
+        default:
+            break;
+        }
+
+        if(video && pictures)
+        {
+            // Remove the current item because it would mean video and pictures must be taken at the same time
+            _partial_mission.erase(_partial_mission.begin() + i);
+        }
+    }
+
+    // Add stop video/stop picture command if video/pictures are still being taken at the end of the mission
+    if(video)
+    {
+        _partial_mission.push_back({0, 3, MAV_CMD_VIDEO_STOP_CAPTURE, 0, 0, 0, 0, 0, 0});
+    }
+
+    if(pictures)
+    {
+        _partial_mission.push_back({0, 3, MAV_CMD_IMAGE_STOP_CAPTURE, 0, 0, 0, 0, 0, 0});
+    }
+
+    // Format mission into string
+    std::stringstream mission;
+
+    mission << std::fixed << std::setprecision(6);
+
+    mission << "QGC WPL 120\n";
+
+    for(int i = 0; i < _partial_mission.size(); i++)
+    {
+        mission << i << "\t";
+        mission << _partial_mission[i].curr_wp << "\t";
+        mission << _partial_mission[i].coord_frame << "\t";
+        mission << _partial_mission[i].command << "\t";
+        mission << _partial_mission[i].param1 << "\t";
+        mission << _partial_mission[i].param2 << "\t";
+        mission << _partial_mission[i].param3 << "\t";
+        mission << _partial_mission[i].param4 << "\t";
+        mission << _partial_mission[i].x << "\t";
+        mission << _partial_mission[i].y << "\t";
+        mission << _partial_mission[i].z << "\t";
+        mission << 1 << "\n";
+    }
+
+    _partial_mission.clear();
+    _mission = mission.str();
+    _mission_ready = true;
+
+    for(IFlightPlanListener *l : _listeners)
+    {
+        l->flightPlanAvailable(_mission);
+    }
+}
+
+void MAVLinkProxy::addFlightPlanListener(IFlightPlanListener *l)
+{
+    _listeners.push_back(l);
+}
+
+void MAVLinkProxy::removeFlightPlanListener(IFlightPlanListener *l)
+{
+    _listeners.erase(remove(_listeners.begin(), _listeners.end(), l), _listeners.end());
 }

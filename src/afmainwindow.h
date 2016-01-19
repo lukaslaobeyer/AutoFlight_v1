@@ -28,12 +28,13 @@
 #include <interface/ivideolistener.h>
 #include "qinterface/qvideolistener.h"
 
+Q_DECLARE_METATYPE(std::string)
 Q_DECLARE_METATYPE(std::shared_ptr<const drone::navdata>)
 Q_DECLARE_METATYPE(std::shared_ptr<const ControllerInput>)
 
 class ManualControl;
 
-class AFMainWindow : public QMainWindow, public INavdataListener, public IStatusListener, public IConnectionStatusListener, public IVideoListener, public IControllerInputListener, public QVideoListener
+class AFMainWindow : public QMainWindow, public INavdataListener, public IStatusListener, public IConnectionStatusListener, public IVideoListener, public IControllerInputListener, public IFlightPlanListener, public QVideoListener
 {
 	Q_OBJECT
 
@@ -46,6 +47,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 		void controllerInputAvailable(std::shared_ptr<const ControllerInput> in);
 		void connectionLost();
 		void connectionEstablished();
+		void flightPlanAvailable(std::string flightplan);
 
 		void showMessage(std::string msg);
 		void launchAutoScriptIDE(std::string file = "", std::vector<std::string> args = {});
@@ -117,6 +119,7 @@ class AFMainWindow : public QMainWindow, public INavdataListener, public IStatus
 		void controllerInputAvailableSignal(std::shared_ptr<const ControllerInput> in);
 		void connectionLostSignal();
 	    void connectionEstablishedSignal();
+        void flightPlanAvailableSignal(std::string path);
 
 		void bebopMediaDownloadFinishedSignal();
 };

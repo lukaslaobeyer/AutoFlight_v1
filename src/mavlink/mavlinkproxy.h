@@ -17,6 +17,27 @@
 
 #include <mavlink/common/mavlink.h>
 
+struct MAVLinkProxyPartialMissionItem
+{
+    uint16_t curr_wp;
+    uint16_t coord_frame;
+    uint16_t command;
+    double param1;
+    double param2;
+    double param3;
+    double param4;
+    double x;
+    double y;
+    double z;
+};
+
+class IFlightPlanListener
+{
+    public:
+        virtual ~IFlightPlanListener() {}
+        virtual void flightPlanAvailable(std::string flightplan) = 0;
+};
+
 class MAVLinkProxy : public INavdataListener, public IConnectionStatusListener
 {
     public:
@@ -29,11 +50,19 @@ class MAVLinkProxy : public INavdataListener, public IConnectionStatusListener
         void connectionEstablished();
         void connectionLost();
 
+        void addFlightPlanListener(IFlightPlanListener *l);
+        void removeFlightPlanListener(IFlightPlanListener *l);
+
+        bool saveFlightPlan(std::string path);
+
     private:
         void heartbeat();
         void navdata();
 
         void dataReceived(const boost::system::error_code &error, size_t received_bytes);
+
+        void handleWaypoint(mavlink_mission_item_t *waypoint);
+        void processPartialMission();
 
         bool _worker_running = false;
 
@@ -54,6 +83,12 @@ class MAVLinkProxy : public INavdataListener, public IConnectionStatusListener
         mavlink_gps_raw_int_t _gps;
 
         uint8_t _received_msg_buf[MAVLINK_MAX_PACKET_LEN];
+
+        bool _mission_ready = false;
+        std::string _mission;
+        std::vector<MAVLinkProxyPartialMissionItem> _partial_mission;
+
+        std::vector<IFlightPlanListener *> _listeners;
 };
 
 #endif

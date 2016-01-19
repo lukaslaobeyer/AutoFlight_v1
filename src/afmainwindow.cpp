@@ -10,6 +10,7 @@
 #include "widgets/battery.h"
 #include "widgets/signalstrength.h"
 #include "widgets/connection.h"
+#include "widgets/flightplan.h"
 
 #include "dialogs/selectcontroller.h"
 #include "dialogs/configurecontrols.h"
@@ -59,6 +60,7 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	_af = af;
 
 	// Register meta types
+	qRegisterMetaType<std::string>();
 	qRegisterMetaType<shared_ptr<const drone::navdata>>();
     qRegisterMetaType<shared_ptr<const ControllerInput>>();
 
@@ -113,6 +115,8 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 		//_af->fpvdrone()->addVideoListener(_imgProcTest); // TODO: this is only a test
 	}
 	_af->drone()->addConnectionStatusListener(this);
+
+	_af->mavlink()->addFlightPlanListener(this);
 
 	_manualcontrol.reset(new ManualControl(_af, this));
 	_manualcontrol->startUpdateLoop();
@@ -204,6 +208,21 @@ void AFMainWindow::connectionEstablished()
 {
     Q_EMIT connectionEstablishedSignal();
 	//_imgProcTest->startProcessing(); // TODO: this is only a test
+}
+
+void AFMainWindow::flightPlanAvailable(std::string flightplan)
+{
+	std::string path = AutoFlight::getHomeDirectory() + "AutoFlightSaves/FlightPlan/";
+
+	boost::filesystem::create_directory(path);
+
+	path += AutoFlight::af_timestamp() + ".mavlink";
+
+	std::ofstream out(path);
+	out << flightplan;
+	out.close();
+
+	Q_EMIT flightPlanAvailableSignal(path);
 }
 
 void AFMainWindow::videoFrameAvailable(cv::Mat f)
@@ -372,6 +391,11 @@ QWidget *AFMainWindow::createVerticalToolbar()
         GPS *gps = new GPS();
         QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), gps, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
         layout->addWidget(gps);
+
+		FlightPlan *fp = new FlightPlan();
+		QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), fp, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
+		QObject::connect(this, SIGNAL(flightPlanAvailableSignal(std::string)), fp, SLOT(flightPlanAvailable(std::string)));
+		layout->addWidget(fp);
     }
 
 	layout->addStretch();
@@ -801,10 +825,13 @@ void AFMainWindow::showAboutDialog()
 	QLabel *build = new QLabel(tr("Build ").append(QString::fromStdString(autoflight::BUILD_NUMBER)));
 	right->addWidget(build);
 
+	QLabel *qtVersion = new QLabel(tr("Qt ").append(qVersion()));
+	right->addWidget(qtVersion);
+
 	right->addStretch();
 
 	QChar copyrightSymbol(0x00A9);
-	QLabel *copyright = new QLabel(QString("Copyright ").append(copyrightSymbol).append(" 2013 - 2015 Lukas Lao Beyer"));
+	QLabel *copyright = new QLabel(QString("Copyright ").append(copyrightSymbol).append(" 2013 - 2016 Lukas Lao Beyer"));
 	right->addWidget(copyright);
 
 	QLabel *website = new QLabel(QString("<a href=\"http://electronics.kitchen/autoflight\">electronics.kitchen/autoflight</a>"));

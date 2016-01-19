@@ -40,6 +40,7 @@ class AutoFlight
 
 		ASEngine *asengine();
 		SessionRecorder *sessionrecorder();
+		MAVLinkProxy *mavlink();
 
 		void saveSession();
 
@@ -54,7 +55,7 @@ class AutoFlight
 		ASEngine *_ase = nullptr;
 		SessionRecorder *_srec = nullptr;
 
-		MAVLinkProxy mavlink;
+		MAVLinkProxy _mavlink;
 
 		pugi::xml_document _sessionRecDoc;
 };

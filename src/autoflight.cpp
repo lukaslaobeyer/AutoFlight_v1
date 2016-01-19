@@ -42,14 +42,14 @@ AutoFlight::AutoFlight(drone_type drone_type, string ip)
 
 	if(drone_type == BEBOP)
 	{
-		bebop()->addNavdataListener(&mavlink);
-		mavlink.start();
+		bebop()->addNavdataListener(&_mavlink);
+		_mavlink.start();
 	}
 }
 
 AutoFlight::~AutoFlight()
 {
-	mavlink.stop();
+	_mavlink.stop();
 	if(_drone != nullptr)
 	{
 		_drone->stopUpdateLoop();
@@ -147,6 +147,11 @@ ASEngine *AutoFlight::asengine()
 SessionRecorder *AutoFlight::sessionrecorder()
 {
 	return _srec;
+}
+
+MAVLinkProxy *AutoFlight::mavlink()
+{
+	return &_mavlink;
 }
 
 bool AutoFlight::attemptConnectionToDrone()

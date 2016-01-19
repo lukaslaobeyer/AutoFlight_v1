@@ -39,7 +39,7 @@ set(QT_USE_QTWEBKIT TRUE)
 IF(MINGW)
   set(CMAKE_PREFIX_PATH "C:/Qt/5.4/mingw491_32")
 ELSE()
-  set(CMAKE_PREFIX_PATH "/opt/Qt5.4.1/5.4/gcc_64")
+  set(CMAKE_PREFIX_PATH "/opt/Qt5.5.1/5.5/gcc_64")
 ENDIF()
 
 # Include libraries in the ../lib folder
