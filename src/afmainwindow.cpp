@@ -116,7 +116,10 @@ AFMainWindow::AFMainWindow(AutoFlight *af, QWidget *parent) : QMainWindow(parent
 	}
 	_af->drone()->addConnectionStatusListener(this);
 
-	_af->mavlink()->addFlightPlanListener(this);
+	if(_af->mavlink() != nullptr)
+	{
+		_af->mavlink()->addFlightPlanListener(this);
+	}
 
 	_manualcontrol.reset(new ManualControl(_af, this));
 	_manualcontrol->startUpdateLoop();

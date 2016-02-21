@@ -42,17 +42,34 @@ AutoFlight::AutoFlight(drone_type drone_type, string ip)
 
 	if(drone_type == BEBOP)
 	{
-		bebop()->addNavdataListener(&_mavlink);
-		_mavlink.start();
+		try
+		{
+			_mavlink = new MAVLinkProxy();
+		}
+		catch(boost::system::system_error const& e)
+		{
+			cerr << "Could not start MAVLink proxy: " << e.what() << endl;
+		}
+	}
+
+	if(_mavlink != nullptr)
+	{
+		bebop()->addNavdataListener(_mavlink);
+		_mavlink->start();
+		cout << "Started MAVLink proxy" << endl;
 	}
 }
 
 AutoFlight::~AutoFlight()
 {
-	_mavlink.stop();
 	if(_drone != nullptr)
 	{
 		_drone->stopUpdateLoop();
+	}
+	if(_mavlink != nullptr)
+	{
+		_mavlink->stop();
+		delete _mavlink;
 	}
 	delete _ase;
 	delete _srec;
@@ -151,7 +168,7 @@ SessionRecorder *AutoFlight::sessionrecorder()
 
 MAVLinkProxy *AutoFlight::mavlink()
 {
-	return &_mavlink;
+	return _mavlink;
 }
 
 bool AutoFlight::attemptConnectionToDrone()

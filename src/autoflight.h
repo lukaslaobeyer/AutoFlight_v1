@@ -55,7 +55,7 @@ class AutoFlight
 		ASEngine *_ase = nullptr;
 		SessionRecorder *_srec = nullptr;
 
-		MAVLinkProxy _mavlink;
+		MAVLinkProxy *_mavlink = nullptr;
 
 		pugi::xml_document _sessionRecDoc;
 };
