@@ -395,10 +395,13 @@ QWidget *AFMainWindow::createVerticalToolbar()
         QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), gps, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
         layout->addWidget(gps);
 
-		FlightPlan *fp = new FlightPlan();
-		QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), fp, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
-		QObject::connect(this, SIGNAL(flightPlanAvailableSignal(std::string)), fp, SLOT(flightPlanAvailable(std::string)));
-		layout->addWidget(fp);
+		if(_af->mavlink())
+		{
+			FlightPlan *fp = new FlightPlan();
+			QObject::connect(this, SIGNAL(navdataAvailableSignal(std::shared_ptr<const drone::navdata>)), fp, SLOT(navdataAvailable(std::shared_ptr<const drone::navdata>)));
+			QObject::connect(this, SIGNAL(flightPlanAvailableSignal(std::string)), fp, SLOT(flightPlanAvailable(std::string)));
+			layout->addWidget(fp);
+		}
     }
 
 	layout->addStretch();

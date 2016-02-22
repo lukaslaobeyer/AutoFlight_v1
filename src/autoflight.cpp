@@ -9,7 +9,7 @@
 
 using namespace std;
 
-AutoFlight::AutoFlight(drone_type drone_type, string ip)
+AutoFlight::AutoFlight(drone_type drone_type, string ip, bool enable_mavlink)
 {
 	_drone_type = drone_type;
 
@@ -40,7 +40,7 @@ AutoFlight::AutoFlight(drone_type drone_type, string ip)
 
 	//TODO: Session recording; _drone->setSessionRecorder(_srec);
 
-	if(drone_type == BEBOP)
+	if(enable_mavlink == true && drone_type == BEBOP)
 	{
 		try
 		{

@@ -27,7 +27,7 @@ enum drone_type
 class AutoFlight
 {
 	public:
-		AutoFlight(drone_type drone_type, std::string drone_ip = "");
+		AutoFlight(drone_type drone_type, std::string drone_ip = "", bool enable_mavlink = false);
 		~AutoFlight();
 
 		bool attemptConnectionToDrone();

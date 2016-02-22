@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
             ("script-args", boost::program_options::value<std::vector<std::string>>()->multitoken(), "arguments for the python script")
 			("ip-address", boost::program_options::value<std::string>(), "an alternative IP address for the drone (default is 192.168.1.1 for AR.Drone 2.0 and 192.168.42.1 for Bebop)")
 			("stream-resolution", boost::program_options::value<std::string>(), "resolution for the live video stream (360P default, can be set to 720P)")
+			("mavlink", "enable MAVLink proxy")
 	;
 
 	boost::program_options::variables_map vm;
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
 	drone_type drone_type = BEBOP;
 	std::string ip_address = bebop::DEFAULT_IP;
 	std::string stream_res = "360P";
+	bool mavlink = false;
 
 	// Detect which drone to use
 	if(vm.count("drone"))
@@ -99,12 +101,17 @@ int main(int argc, char *argv[])
 		stream_res = vm["stream-resolution"].as<std::string>();
 	}
 
+	if(vm.count("mavlink"))
+	{
+		mavlink = true;
+	}
+
 	std::cout << "Starting AutoFlight...\n";
 
 	Gamepad_init();
 	Gamepad_detectDevices();
 
-	AutoFlight af(drone_type, ip_address);
+	AutoFlight af(drone_type, ip_address, mavlink);
 
 	// TODO: Allow setting stream resolution
 	/*
