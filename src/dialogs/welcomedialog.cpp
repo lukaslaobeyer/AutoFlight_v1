@@ -28,5 +28,5 @@ WelcomeDialog::WelcomeDialog(QWidget *parent) : QDialog(parent)
 
 void WelcomeDialog::openGettingStartedPage()
 {
-	QDesktopServices::openUrl(QUrl("http://lbpclabs.com/gettingstarted"));
+	QDesktopServices::openUrl(QUrl("http://electronics.kitchen/docs/autoflight/gettingstarted"));
 }
