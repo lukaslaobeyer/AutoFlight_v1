@@ -2,11 +2,11 @@ import time
 import numpy as np
 import cv2
 
-imgproc.startTagDetector()
+imgproc.start_tag_detector()
 
 while True:
-    detections = imgproc.getTagDetections()
-    img = imgproc.getLatestFrame()
+    detections = imgproc.tag_detections()
+    img = imgproc.latest_frame()
     i = 0
     for (id, good, points) in detections:
         cv2.putText(img, 'id = ' + str(id), (10, 30 + i*30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
@@ -14,6 +14,6 @@ while True:
             cv2.circle(img, (int(x), int(y)), 5, (0, 255, 0), -1)
         i+=1
         
-    imgproc.showFrame(img)
+    imgproc.show_frame(img)
     
     time.sleep(0.025)

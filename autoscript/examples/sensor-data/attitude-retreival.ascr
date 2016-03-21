@@ -1,10 +1,11 @@
 import math
 import time
 
-print("Yaw\tPitch\tRoll")
+print("Pitch\tRoll\tYaw")
 
 for i in range(50):
-    print("%.1f" % (sensors.getOrientation("YAW") * (180.0/math.pi)) + '\t'
-          "%.1f" % (sensors.getOrientation("PITCH") * (180.0/math.pi)) + '\t'
-          "%.1f" % (sensors.getOrientation("ROLL") * (180.0/math.pi)))
+    navdata = basicctl.navdata()
+    print("%.1f" % (navdata['attitude'][0] * (180.0/math.pi)) + '\t'
+          "%.1f" % (navdata['attitude'][1] * (180.0/math.pi)) + '\t'
+          "%.1f" % (navdata['attitude'][2] * (180.0/math.pi)))
     time.sleep(0.1)
